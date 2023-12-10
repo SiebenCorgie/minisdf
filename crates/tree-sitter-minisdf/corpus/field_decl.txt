@@ -1,0 +1,75 @@
+
+==================
+no params
+==================
+
+field myfield(){
+    box();
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (prim_call
+          (prim))))
+
+==================
+one param
+==================
+
+field myfield(a: vec3){
+    box(1, 1, 1);
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (arg_list
+          (typed_arg
+            (identifier)
+            (type)))
+        (prim_call
+          (prim)
+          (call_params
+            (param
+              (literal
+                (integer_literal
+                  (digit))))
+            (param
+              (literal
+                (integer_literal
+                  (digit))))
+            (param
+              (literal
+                (integer_literal
+                  (digit))))))))
+
+
+==================
+two params
+==================
+
+field myfield(a: vec3, b: float){
+    box(a);
+}
+
+---
+(source_file
+      (field_decl
+        (identifier)
+        (arg_list
+          (typed_arg
+            (identifier)
+            (type))
+          (typed_arg
+            (identifier)
+            (type)))
+        (prim_call
+          (prim)
+          (call_params
+            (param
+              (identifier))))))

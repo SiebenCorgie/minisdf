@@ -1,0 +1,208 @@
+==================
+single op
+==================
+
+field myfield(){
+    box();
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (prim_call
+          (prim))))
+
+==================
+single op 1 param
+==================
+
+field myfield(){
+    box(a);
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (prim_call
+          (prim)
+          (call_params
+            (param
+              (identifier))))))
+
+==================
+single op 2 param
+==================
+
+field myfield(){
+    box(a, b);
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (prim_call
+          (prim)
+          (call_params
+            (param
+              (identifier))
+            (param
+              (identifier))))))
+
+==================
+unary op
+==================
+
+field myfield(){
+    translate(){
+        sphere();
+    }
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (unary_call
+          (unary_op)
+          (prim_call
+            (prim)))))
+
+
+==================
+unary op 1 param
+==================
+
+field myfield(){
+    translate( a ){
+        sphere();
+    }
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (unary_call
+          (unary_op)
+          (call_params
+            (param
+              (identifier)))
+          (prim_call
+            (prim)))))
+
+
+==================
+unary op 2 param
+==================
+
+field myfield(){
+    translate(a , b){
+        sphere();
+    }
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (unary_call
+          (unary_op)
+          (call_params
+            (param
+              (identifier))
+            (param
+              (identifier)))
+          (prim_call
+            (prim)))))
+
+
+==================
+binary op
+==================
+
+field myfield(){
+    union(){
+        sphere();
+    }{
+        box();
+    }
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (binary_call
+          (binary_op)
+          (prim_call
+            (prim))
+          (prim_call
+            (prim)))))
+
+
+==================
+binary op 1 param
+==================
+
+field myfield(){
+    union(a){
+        sphere();
+    }{
+        box();
+    }
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (binary_call
+          (binary_op)
+          (call_params
+            (param
+              (identifier)))
+          (prim_call
+            (prim))
+          (prim_call
+            (prim)))))
+
+
+==================
+binary op 1 param
+==================
+
+field myfield(){
+    union(a, b){
+        sphere();
+    }{
+        box();
+    }
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (binary_call
+          (binary_op)
+          (call_params
+            (param
+              (identifier))
+            (param
+              (identifier)))
+          (prim_call
+            (prim))
+          (prim_call
+            (prim)))))

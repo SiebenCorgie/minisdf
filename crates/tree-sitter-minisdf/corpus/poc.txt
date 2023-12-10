@@ -1,0 +1,95 @@
+
+==================
+Proof of concept parse
+==================
+
+field myfield(offset: vec3){
+    sub(){
+        repeat(4, 4, 4){
+            box(1, 1, 1);
+        }
+    }{
+        translate(offset){
+            smooth(4.0){
+                box(vec3(1.0, 1.0, 1.0));
+            }
+        }
+    }
+}
+
+---
+
+(source_file
+      (field_decl
+        (identifier)
+        (arg_list
+          (typed_arg
+            (identifier)
+            (type)))
+        (binary_call
+          (binary_op)
+          (unary_call
+            (unary_op)
+            (call_params
+              (param
+                (literal
+                  (integer_literal
+                    (digit))))
+              (param
+                (literal
+                  (integer_literal
+                    (digit))))
+              (param
+                (literal
+                  (integer_literal
+                    (digit)))))
+            (prim_call
+              (prim)
+              (call_params
+                (param
+                  (literal
+                    (integer_literal
+                      (digit))))
+                (param
+                  (literal
+                    (integer_literal
+                      (digit))))
+                (param
+                  (literal
+                    (integer_literal
+                      (digit)))))))
+          (unary_call
+            (unary_op)
+            (call_params
+              (param
+                (identifier)))
+            (unary_call
+              (unary_op)
+              (call_params
+                (param
+                  (literal
+                    (float_literal
+                      (digit)
+                      (digit)))))
+              (prim_call
+                (prim)
+                (call_params
+                  (param
+                    (type_constructor
+                      (type)
+                      (call_params
+                        (param
+                          (literal
+                            (float_literal
+                              (digit)
+                              (digit))))
+                        (param
+                          (literal
+                            (float_literal
+                              (digit)
+                              (digit))))
+                        (param
+                          (literal
+                            (float_literal
+                              (digit)
+                              (digit))))))))))))))
