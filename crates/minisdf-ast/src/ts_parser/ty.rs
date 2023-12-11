@@ -6,11 +6,7 @@ use crate::{PrimTy, Tree, Ty};
 use super::{err::TSParseError, report_error};
 
 pub fn parse_type(data: &[u8], node: &Node) -> Ty {
-    if node.kind() != "type" {
-        report_error(
-            TSParseError::UnexpectedToken(node.kind().to_owned()),
-            Span::from(node),
-        );
+    if !TSParseError::check_token(node, "type") {
         return Ty::Error;
     }
 

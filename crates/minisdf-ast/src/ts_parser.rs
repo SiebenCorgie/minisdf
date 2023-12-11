@@ -139,7 +139,7 @@ fn parse_field_decl(data: &[u8], node: &Node) -> Field {
         ")" => Vec::with_capacity(0),
         _ => {
             report_error(
-                TSParseError::UnexpectedToken(next.kind().to_owned()),
+                TSParseError::UnexpectedToken(next.kind().to_owned(), "arg_list | )".to_owned()),
                 Span::from(&next),
             );
             Vec::new()
@@ -167,7 +167,10 @@ fn parse_toplevel(data: &[u8], parser: tree_sitter::Tree) -> Vec<Field> {
             "comment" => {}
             "field_decl" => fields.push(parse_field_decl(data, &child)),
             _ => report_error(
-                TSParseError::UnexpectedToken(child.kind().to_owned()),
+                TSParseError::UnexpectedToken(
+                    child.kind().to_owned(),
+                    "comment | field_decl".to_owned(),
+                ),
                 Span::from(&child),
             ),
         }

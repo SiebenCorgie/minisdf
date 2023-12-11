@@ -6,11 +6,7 @@ use crate::{BinOpTy, Literal, Parameter, PrimTy, Tree, UnOpTy};
 use super::{err::TSParseError, parse_ident, report_error, ty::parse_type};
 
 pub fn parse_unopty(data: &[u8], node: &Node) -> UnOpTy {
-    if node.kind() != "unary_op" {
-        report_error(
-            TSParseError::UnexpectedToken(node.kind().to_owned()),
-            Span::from(node),
-        );
+    if !TSParseError::check_token(node, "unary_op") {
         return UnOpTy::Error;
     }
 
@@ -34,11 +30,7 @@ pub fn parse_unopty(data: &[u8], node: &Node) -> UnOpTy {
 }
 
 pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
-    if node.kind() != "binary_op" {
-        report_error(
-            TSParseError::UnexpectedToken(node.kind().to_owned()),
-            Span::from(node),
-        );
+    if TSParseError::check_token(node, "binary_op") {
         return BinOpTy::Error;
     }
 
@@ -62,11 +54,7 @@ pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
 }
 
 pub fn parse_prim_ty(data: &[u8], node: &Node) -> PrimTy {
-    if node.kind() != "prim" {
-        report_error(
-            TSParseError::UnexpectedToken(node.kind().to_owned()),
-            Span::from(node),
-        );
+    if TSParseError::check_token(node, "prim") {
         return PrimTy::Error;
     }
 
@@ -104,7 +92,10 @@ pub fn parse_lit(data: &[u8], node: &Node) -> Literal {
         }
         _ => {
             report_error(
-                TSParseError::UnexpectedToken(node.kind().to_owned()),
+                TSParseError::UnexpectedToken(
+                    node.kind().to_owned(),
+                    "float_literal | integer_literal".to_owned(),
+                ),
                 Span::from(node),
             );
             Literal::Int(0xdeadbeef)
@@ -124,7 +115,10 @@ pub fn parse_param(data: &[u8], node: &Node) -> Parameter {
         }
         _ => {
             report_error(
-                TSParseError::UnexpectedToken(child.kind().to_owned()),
+                TSParseError::UnexpectedToken(
+                    child.kind().to_owned(),
+                    "literal | identifier | type_construct".to_owned(),
+                ),
                 Span::from(&child),
             );
             Parameter::Error
@@ -141,7 +135,7 @@ pub fn parse_call_params(data: &[u8], node: &Node) -> Vec<Parameter> {
             "," => {}
             _ => {
                 report_error(
-                    TSParseError::UnexpectedToken(child.kind().to_owned()),
+                    TSParseError::UnexpectedToken(child.kind().to_owned(), "param | ,".to_owned()),
                     Span::from(&child),
                 );
             }
@@ -204,26 +198,19 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
             };
 
             let opening = node.child(1).unwrap();
-            if opening.kind() != "(" {
-                report_error(
-                    TSParseError::UnexpectedToken(opening.kind().to_owned()),
-                    Span::from(&opening),
-                )
-            }
+            let _ = TSParseError::check_token(&opening, "(");
 
             let closing = node.child(3).unwrap();
-            if closing.kind() != ")" {
-                report_error(
-                    TSParseError::UnexpectedToken(closing.kind().to_owned()),
-                    Span::from(&closing),
-                )
-            }
+            let _ = TSParseError::check_token(&closing, ")");
 
             Tree::Prim { prim, params }
         }
         _ => {
             report_error(
-                TSParseError::UnexpectedToken(node.kind().to_owned()),
+                TSParseError::UnexpectedToken(
+                    node.kind().to_owned(),
+                    "prim_call | unary_call | binary_call".to_owned(),
+                ),
                 Span::from(node),
             );
             Tree::Error
