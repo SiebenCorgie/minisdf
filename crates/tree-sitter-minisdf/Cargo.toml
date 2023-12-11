@@ -4,7 +4,8 @@ description = "minisdf grammar for the tree-sitter parsing library"
 version = "0.0.1"
 keywords = ["incremental", "parsing", "minisdf"]
 categories = ["parsing", "text-editors"]
-edition = "2021"
+repository = "https://github.com/tree-sitter/tree-sitter-minisdf"
+edition = "2018"
 license = "MIT"
 
 build = "bindings/rust/build.rs"

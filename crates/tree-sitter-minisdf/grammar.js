@@ -124,6 +124,7 @@ module.exports = grammar({
     integer_literal: $ => $.digit,
 
     float_literal: $ => seq(
+      optional("-"),
       $.digit,
       '.',
       optional($.digit)

@@ -1,15 +1,14 @@
 [package]
-name = "minisdf-ast"
+name = "minisdf-common"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-minisdf-common = {path = "../minisdf-common"}
-tinyvec = {workspace = true, features = ["alloc"]}
 tinyvec_string = {workspace = true, features = ["alloc"]}
-lazy_static.workspace = true
-thiserror.workspace = true
-tree-sitter-minisdf = {path = "../tree-sitter-minisdf"}
+annotate-snippets.workspace = true
+backtrace.workspace = true
 tree-sitter.workspace = true
+ahash.workspace = true
+tinyvec = {workspace = true, features = ["alloc"]}

@@ -5,6 +5,7 @@ resolver = "2"
 members = [
 "crates/tree-sitter-minisdf",
 "crates/minisdf-ast",
+"crates/minisdf-common",
 
 "examples/simple"
 ]
