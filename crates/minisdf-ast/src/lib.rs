@@ -39,9 +39,9 @@ pub enum UnOpTy {
 
 #[derive(Clone, Debug)]
 pub struct UnaryOp {
-    ty: UnOpTy,
-    parameter: Vec<Parameter>,
-    subtree: Box<Tree>,
+    pub ty: UnOpTy,
+    pub parameter: Vec<Parameter>,
+    pub subtree: Box<Tree>,
 }
 
 #[derive(Clone, Debug)]
@@ -54,10 +54,10 @@ pub enum BinOpTy {
 
 #[derive(Clone, Debug)]
 pub struct BinaryOp {
-    ty: BinOpTy,
-    parameter: Vec<Parameter>,
-    left: Box<Tree>,
-    right: Box<Tree>,
+    pub ty: BinOpTy,
+    pub parameter: Vec<Parameter>,
+    pub left: Box<Tree>,
+    pub right: Box<Tree>,
 }
 
 #[derive(Clone, Debug)]
@@ -82,14 +82,14 @@ pub enum Tree {
 
 #[derive(Clone, Debug)]
 pub struct TypedArg {
-    ident: Ident,
-    ty: Ty,
+    pub ident: Ident,
+    pub ty: Ty,
 }
 
 ///A single field description
 #[derive(Clone, Debug)]
 pub struct Field {
-    name: Ident,
-    args: Vec<TypedArg>,
-    tree: Tree,
+    pub name: Ident,
+    pub args: Vec<TypedArg>,
+    pub tree: Tree,
 }

@@ -4,11 +4,11 @@ use std::{path::Path, sync::Mutex};
 
 use lazy_static::lazy_static;
 use minisdf_common::{CommonError, Span};
-use tree_sitter::{Node, Parser, TreeCursor};
+use tree_sitter::{Node, Parser};
 
 use crate::{
     ts_parser::{tree::parse_tree, ty::parse_type},
-    Field, Ident, Tree, TypedArg,
+    Field, Ident, TypedArg,
 };
 
 use self::err::TSParseError;
@@ -69,7 +69,12 @@ pub fn parse_file(file: impl AsRef<Path>) -> Result<Vec<Field>, err::TSParseErro
         .parse(&data, None)
         .expect("Could not parse via tree-sitter!");
 
-    println!("SYNTREE:\n{}", syn_tree.root_node().to_sexp());
+    if syn_tree.root_node().has_error() {
+        println!(
+            "Syntax tree contains errors:\n{}",
+            syn_tree.root_node().to_sexp()
+        );
+    }
 
     let field = parse_toplevel(&data, syn_tree);
     if let Some(err) = LASTERR.lock().unwrap().take() {

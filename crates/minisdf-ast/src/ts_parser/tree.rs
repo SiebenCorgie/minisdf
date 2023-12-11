@@ -1,9 +1,7 @@
+use super::{err::TSParseError, parse_ident, report_error, ty::parse_type};
+use crate::{BinOpTy, Literal, Parameter, PrimTy, Tree, UnOpTy};
 use minisdf_common::Span;
 use tree_sitter::Node;
-
-use crate::{BinOpTy, Literal, Parameter, PrimTy, Tree, UnOpTy};
-
-use super::{err::TSParseError, parse_ident, report_error, ty::parse_type};
 
 pub fn parse_unopty(data: &[u8], node: &Node) -> UnOpTy {
     if !TSParseError::check_token(node, "unary_op") {
@@ -145,8 +143,6 @@ pub fn parse_call_params(data: &[u8], node: &Node) -> Vec<Parameter> {
 }
 
 pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
-    let mut walker = node.walk();
-
     match node.kind() {
         "binary_call" => {
             let op = parse_binopty(data, node.child(0).as_ref().unwrap());
@@ -172,16 +168,18 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
         }
         "unary_call" => {
             let op = parse_unopty(data, node.child(0).as_ref().unwrap());
-            let mut sub_offset = 4;
-            let mut closing_offset = 3;
+            let mut param_offset = 0;
             let params = if let "call_params" = node.child(2).as_ref().unwrap().kind() {
-                closing_offset = 4;
-                sub_offset = 5;
+                param_offset = 1;
                 parse_call_params(data, node.child(2).as_ref().unwrap())
             } else {
                 Vec::with_capacity(0)
             };
-            let sub = parse_tree(data, node.child(sub_offset).as_ref().unwrap());
+            let sub = parse_tree(data, node.child(4 + param_offset).as_ref().unwrap());
+
+            let _ = TSParseError::check_token(node.child(2 + param_offset).as_ref().unwrap(), ")");
+            let _ = TSParseError::check_token(node.child(3 + param_offset).as_ref().unwrap(), "{");
+            let _ = TSParseError::check_token(node.child(5 + param_offset).as_ref().unwrap(), "}");
 
             Tree::Unary(crate::UnaryOp {
                 ty: op,

@@ -8,7 +8,7 @@ field myfield(offsetx: vec3){
 		translate(offsetx, offsety, offsetz){
 			smooth(4.0){
 				box(1.0, 1.0, 2.0)
-			}
+            }
 		}
 	}
 }

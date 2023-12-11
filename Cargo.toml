@@ -6,6 +6,7 @@ members = [
 "crates/tree-sitter-minisdf",
 "crates/minisdf-ast",
 "crates/minisdf-common",
+"crates/minisdf-optimizer",
 
 "examples/simple"
 ]

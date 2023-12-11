@@ -1,7 +1,7 @@
 use minisdf_common::Span;
 use tree_sitter::Node;
 
-use crate::{PrimTy, Tree, Ty};
+use crate::Ty;
 
 use super::{err::TSParseError, report_error};
 
