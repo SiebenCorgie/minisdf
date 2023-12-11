@@ -71,8 +71,7 @@ module.exports = grammar({
       $.prim,
       "(",
       optional($.call_params),
-      ")",
-      ";"
+      ")"
     ),
 
     call_params: $ => seq(

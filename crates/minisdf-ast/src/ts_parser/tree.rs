@@ -179,7 +179,9 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
         "unary_call" => {
             let op = parse_unopty(data, node.child(0).as_ref().unwrap());
             let mut sub_offset = 4;
+            let mut closing_offset = 3;
             let params = if let "call_params" = node.child(2).as_ref().unwrap().kind() {
+                closing_offset = 4;
                 sub_offset = 5;
                 parse_call_params(data, node.child(2).as_ref().unwrap())
             } else {
@@ -200,6 +202,22 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
             } else {
                 Vec::with_capacity(0)
             };
+
+            let opening = node.child(1).unwrap();
+            if opening.kind() != "(" {
+                report_error(
+                    TSParseError::UnexpectedToken(opening.kind().to_owned()),
+                    Span::from(&opening),
+                )
+            }
+
+            let closing = node.child(3).unwrap();
+            if closing.kind() != ")" {
+                report_error(
+                    TSParseError::UnexpectedToken(closing.kind().to_owned()),
+                    Span::from(&closing),
+                )
+            }
 
             Tree::Prim { prim, params }
         }

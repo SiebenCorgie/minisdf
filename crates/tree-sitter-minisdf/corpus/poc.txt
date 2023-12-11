@@ -6,12 +6,12 @@ Proof of concept parse
 field myfield(offset: vec3){
     sub(){
         repeat(4, 4, 4){
-            box(1, 1, 1);
+            box(1, 1, 1)
         }
     }{
         translate(offset){
             smooth(4.0){
-                box(vec3(1.0, 1.0, 1.0));
+                box(vec3(1.0, 1.0, 1.0))
             }
         }
     }

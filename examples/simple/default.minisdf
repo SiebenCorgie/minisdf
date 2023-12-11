@@ -1,13 +1,14 @@
 field myfield(offsetx: vec3){
 	sub(){
 		repeat(4, 4, 4){
-			box(1, 1, 1);
+			box 1, 1, 32)
 		}
 	}{
 		translate(offsetx, offsety, offsetz){
 			smooth(4.0){
-				box(1.0, 1.0, 2.0);
+				box(1.0, 1.0, 2.0)
 			}
 		}
 	}
 }
+

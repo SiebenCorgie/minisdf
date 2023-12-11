@@ -3,7 +3,7 @@ single op
 ==================
 
 field myfield(){
-    box();
+    box()
 }
 
 ---
@@ -19,7 +19,7 @@ single op 1 param
 ==================
 
 field myfield(){
-    box(a);
+    box(a)
 }
 
 ---
@@ -38,7 +38,7 @@ single op 2 param
 ==================
 
 field myfield(){
-    box(a, b);
+    box(a, b)
 }
 
 ---
@@ -60,7 +60,7 @@ unary op
 
 field myfield(){
     translate(){
-        sphere();
+        sphere()
     }
 }
 
@@ -81,7 +81,7 @@ unary op 1 param
 
 field myfield(){
     translate( a ){
-        sphere();
+        sphere()
     }
 }
 
@@ -105,7 +105,7 @@ unary op 2 param
 
 field myfield(){
     translate(a , b){
-        sphere();
+        sphere()
     }
 }
 
@@ -131,9 +131,9 @@ binary op
 
 field myfield(){
     union(){
-        sphere();
+        sphere()
     }{
-        box();
+        box()
     }
 }
 
@@ -156,9 +156,9 @@ binary op 1 param
 
 field myfield(){
     union(a){
-        sphere();
+        sphere()
     }{
-        box();
+        box()
     }
 }
 
@@ -184,9 +184,9 @@ binary op 1 param
 
 field myfield(){
     union(a, b){
-        sphere();
+        sphere()
     }{
-        box();
+        box()
     }
 }
 
