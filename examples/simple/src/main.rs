@@ -9,9 +9,12 @@ fn main() {
     };
 
     for ast in fields {
-        println!("Parsing ast: \n{:#?}", ast);
         let name = ast.name.0.clone();
         let hltree = minisdf_optimizer::hlgraph_from_ast(ast, SRCFILE).unwrap();
         rvsdg_viewer::into_svg(&hltree.graph, &format!("{}.svg", name));
+        if !hltree.type_check() {
+            println!("Type check failed :((");
+            return;
+        }
     }
 }

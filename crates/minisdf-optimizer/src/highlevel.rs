@@ -58,8 +58,20 @@ pub enum HLError {
     Any,
     #[error("Ast contained error node")]
     AstError,
+    #[error("Highlevel graph contained error node")]
+    HLError,
     #[error("Identifier {0} is not defined!")]
     UndefinedIdent(String),
+    #[error("Expected variable of type {expect:?}, found {was:?}")]
+    TypeExpected { expect: Ty, was: Option<Ty> },
+    #[error("Expected input {0} to be subtree")]
+    SubtreeExpected(usize),
+    #[error("Expected input {0} to be connected")]
+    InputConnectionExpected(usize),
+    #[error("Expected input {0} to be existent")]
+    InputExpected(usize),
+    #[error("Too many inputs, expected {0} inputs, got {1}")]
+    TooManyInputs(usize, usize),
 }
 
 impl Default for HLError {
@@ -83,9 +95,11 @@ pub enum HLOpTy {
 
 #[derive(Debug)]
 pub struct HLOp {
-    ty: HLOpTy,
-    inputs: TinyVec<[Input; 3]>,
-    outputs: TinyVec<[Output; 3]>,
+    pub ty: HLOpTy,
+    //The source span this op originates from.
+    pub span: Span,
+    pub inputs: TinyVec<[Input; 3]>,
+    pub outputs: TinyVec<[Output; 3]>,
 }
 
 impl LangNode for HLOp {
@@ -146,9 +160,10 @@ impl View for HLOp {
 }
 
 impl HLOp {
-    pub fn new(ty: HLOpTy) -> Self {
+    pub fn new(ty: HLOpTy, span: Span) -> Self {
         HLOp {
             ty,
+            span,
             inputs: TinyVec::default(),
             outputs: TinyVec::default(),
         }
@@ -241,7 +256,7 @@ fn tree_from_ast(
     match tree {
         Tree::Error => {
             report_error(HLError::AstError, Span::empty());
-            let node = region.insert_node(HLOp::new(HLOpTy::Error));
+            let node = region.insert_node(HLOp::new(HLOpTy::Error, Span::empty()));
             node.as_outport_location(OutputType::Output(node_push_output(
                 region.ctx_mut().node_mut(node),
             )))
@@ -254,12 +269,12 @@ fn tree_from_ast(
             span,
         }) => {
             if let BinOpTy::Error = ty {
-                report_error(HLError::AstError, span);
+                report_error(HLError::AstError, span.clone());
             }
             //setup the unary node, recurse bot children and setup connections
             let left = tree_from_ast(*left, region, type_table, identifier_table);
             let right = tree_from_ast(*right, region, type_table, identifier_table);
-            let node = region.insert_node(HLOp::new(HLOpTy::BinaryOp(ty)));
+            let node = region.insert_node(HLOp::new(HLOpTy::BinaryOp(ty), span));
             //resolve parameters, if one is not found, insert error node instead and call error.
             let parameter: Vec<_> = parameter
                 .into_iter()
@@ -307,10 +322,10 @@ fn tree_from_ast(
             span,
         }) => {
             if let UnOpTy::Error = ty {
-                report_error(HLError::AstError, span);
+                report_error(HLError::AstError, span.clone());
             }
             let inner = tree_from_ast(*subtree, region, type_table, identifier_table);
-            let node = region.insert_node(HLOp::new(HLOpTy::UnaryOp(ty)));
+            let node = region.insert_node(HLOp::new(HLOpTy::UnaryOp(ty), span));
 
             //resolve parameters, if one is not found, insert error node instead and call error.
             let parameter: Vec<_> = parameter
@@ -345,10 +360,10 @@ fn tree_from_ast(
         }
         Tree::Prim { prim, params, span } => {
             if let PrimTy::Error = prim {
-                report_error(HLError::AstError, span);
+                report_error(HLError::AstError, span.clone());
             }
             //just resolve the parameters then setup the prim node.
-            let node = region.insert_node(HLOp::new(HLOpTy::Prim(prim)));
+            let node = region.insert_node(HLOp::new(HLOpTy::Prim(prim), span));
 
             //resolve parameters, if one is not found, insert error node instead and call error.
             let parameter: Vec<_> = params
@@ -384,7 +399,7 @@ fn param_from_ast(
     match param {
         Parameter::Error => {
             report_error(HLError::AstError, Span::empty());
-            let node = region.insert_node(HLOp::new(HLOpTy::Error));
+            let node = region.insert_node(HLOp::new(HLOpTy::Error, Span::empty()));
             node.as_outport_location(OutputType::Output(0))
         }
         Parameter::Ident(ident) => {
@@ -398,7 +413,7 @@ fn param_from_ast(
                 }
             } else {
                 report_error(HLError::UndefinedIdent(ident.0), Span::empty());
-                let errornode = region.insert_node(HLOp::new(HLOpTy::Error));
+                let errornode = region.insert_node(HLOp::new(HLOpTy::Error, Span::empty()));
                 errornode.as_outport_location(OutputType::Output(node_push_output(
                     region.ctx_mut().node_mut(errornode),
                 )))
@@ -406,13 +421,13 @@ fn param_from_ast(
         }
         Parameter::Lit(literal) => match literal {
             Literal::Float(f) => {
-                let node = region.insert_node(HLOp::new(HLOpTy::ConstFloat(f)));
+                let node = region.insert_node(HLOp::new(HLOpTy::ConstFloat(f), Span::empty()));
                 node.as_outport_location(OutputType::Output(node_push_output(
                     region.ctx_mut().node_mut(node),
                 )))
             }
             Literal::Int(i) => {
-                let node = region.insert_node(HLOp::new(HLOpTy::ConstInt(i)));
+                let node = region.insert_node(HLOp::new(HLOpTy::ConstInt(i), Span::empty()));
                 node.as_outport_location(OutputType::Output(node_push_output(
                     region.ctx_mut().node_mut(node),
                 )))
@@ -423,7 +438,8 @@ fn param_from_ast(
                 .into_iter()
                 .map(|p| param_from_ast(p, region, type_table, identifier_table))
                 .collect();
-            let constructor_node = region.insert_node(HLOp::new(HLOpTy::TyConst(ty)));
+            let constructor_node =
+                region.insert_node(HLOp::new(HLOpTy::TyConst(ty), Span::empty()));
             for param in params {
                 let into_p_idx = node_push_input(region.ctx_mut().node_mut(constructor_node));
                 region
