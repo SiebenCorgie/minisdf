@@ -78,6 +78,12 @@ impl<'a, E: std::error::Error + Default> Display for ErrorPrintBundle<'a, E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let ErrorPrintBundle { error, src_lines } = self;
         let error_str = error.source.to_string();
+
+        //If we have no span, just print the error
+        if error.span.from == error.span.to {
+            return write!(f, "{}", error_str);
+        }
+
         //NOTE: usually an error is only on one line / at one point. However,
         // sometimes it goes over multiple lines. In this case, this makes sure we only
         // attach annotation to the last line, by clamping to the first line + start offset, and last line - start offset

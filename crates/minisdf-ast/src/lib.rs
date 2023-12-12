@@ -1,6 +1,7 @@
 //! MiniSDF AST with focus on simplicity
 
 mod ts_parser;
+use minisdf_common::Span;
 pub use ts_parser::parse_file;
 
 #[derive(Clone, Debug)]
@@ -42,6 +43,7 @@ pub struct UnaryOp {
     pub ty: UnOpTy,
     pub parameter: Vec<Parameter>,
     pub subtree: Box<Tree>,
+    pub span: Span,
 }
 
 #[derive(Clone, Debug)]
@@ -58,6 +60,7 @@ pub struct BinaryOp {
     pub parameter: Vec<Parameter>,
     pub left: Box<Tree>,
     pub right: Box<Tree>,
+    pub span: Span,
 }
 
 #[derive(Clone, Debug)]
@@ -74,6 +77,7 @@ pub enum Tree {
     Unary(UnaryOp),
     Binary(BinaryOp),
     Prim {
+        span: Span,
         prim: PrimTy,
         params: Vec<Parameter>,
     },
@@ -84,6 +88,7 @@ pub enum Tree {
 pub struct TypedArg {
     pub ident: Ident,
     pub ty: Ty,
+    pub span: Span,
 }
 
 ///A single field description

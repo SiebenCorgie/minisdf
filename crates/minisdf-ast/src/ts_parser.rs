@@ -110,7 +110,11 @@ fn parse_typed_args(data: &[u8], arg_list: &Node) -> Vec<TypedArg> {
         //first child should be ident, other should be type
         let ident = parse_ident(data, &child.child(0).as_ref().unwrap());
         let ty = parse_type(data, &child.child(2).as_ref().unwrap());
-        args.push(TypedArg { ident, ty })
+        args.push(TypedArg {
+            ident,
+            ty,
+            span: Span::from(&child),
+        })
     }
     args
 }

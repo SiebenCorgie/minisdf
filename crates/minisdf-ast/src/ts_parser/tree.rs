@@ -164,6 +164,7 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
                 parameter: params,
                 left: Box::new(sub_a),
                 right: Box::new(sub_b),
+                span: Span::from(node),
             })
         }
         "unary_call" => {
@@ -185,6 +186,7 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
                 ty: op,
                 parameter: params,
                 subtree: Box::new(sub),
+                span: Span::from(node),
             })
         }
         "prim_call" => {
@@ -201,7 +203,11 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
             let closing = node.child(3).unwrap();
             let _ = TSParseError::check_token(&closing, ")");
 
-            Tree::Prim { prim, params }
+            Tree::Prim {
+                prim,
+                params,
+                span: Span::from(node),
+            }
         }
         _ => {
             report_error(
