@@ -28,7 +28,7 @@ pub fn parse_unopty(data: &[u8], node: &Node) -> UnOpTy {
 }
 
 pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
-    if TSParseError::check_token(node, "binary_op") {
+    if !TSParseError::check_token(node, "binary_op") {
         return BinOpTy::Error;
     }
 
@@ -52,7 +52,7 @@ pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
 }
 
 pub fn parse_prim_ty(data: &[u8], node: &Node) -> PrimTy {
-    if TSParseError::check_token(node, "prim") {
+    if !TSParseError::check_token(node, "prim") {
         return PrimTy::Error;
     }
 
@@ -63,7 +63,6 @@ pub fn parse_prim_ty(data: &[u8], node: &Node) -> PrimTy {
         }
         Ok(s) => s.to_owned(),
     };
-
     match name.as_str() {
         "box" => PrimTy::Box,
         "sphere" => PrimTy::Sphere,
