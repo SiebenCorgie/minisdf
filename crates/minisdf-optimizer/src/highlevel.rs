@@ -11,7 +11,7 @@ use minisdf_ast::{
 };
 use minisdf_common::{CommonError, ErrorPrintBundle, Span};
 use rvsdg::{
-    attrib::AttribStore,
+    attrib::{AttribLocation, AttribStore},
     builder::RegionBuilder,
     edge::{InputType, OutportLocation, OutputType},
     nodes::{LangNode, Node, NodeType, OmegaNode},
@@ -72,6 +72,10 @@ pub enum HLError {
     InputExpected(usize),
     #[error("Too many inputs, expected {0} inputs, got {1}")]
     TooManyInputs(usize, usize),
+    #[error("Expected HLOp {expect:?} got {was:?}")]
+    HlOpExpect { expect: HLOpTy, was: HLOpTy },
+    #[error("No type information for node {0:?}")]
+    NoTypeInfo(AttribLocation),
 }
 
 impl Default for HLError {
@@ -80,7 +84,7 @@ impl Default for HLError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HLOpTy {
     ConstFloat(f32),
     ConstInt(isize),
@@ -91,6 +95,21 @@ pub enum HLOpTy {
     Prim(PrimTy),
 
     Error,
+}
+
+impl HLOpTy {
+    pub fn is_type_equal(&self, other: &Self) -> bool {
+        match (self, other) {
+            (HLOpTy::ConstFloat(_), HLOpTy::ConstFloat(_)) => true,
+            (HLOpTy::ConstInt(_), HLOpTy::ConstInt(_)) => true,
+            (HLOpTy::TyConst(t0), HLOpTy::TyConst(t1)) => t0 == t1,
+            (HLOpTy::UnaryOp(u0), HLOpTy::UnaryOp(u1)) => u0 == u1,
+            (HLOpTy::BinaryOp(b0), HLOpTy::BinaryOp(b1)) => b0 == b1,
+            (HLOpTy::Prim(p0), HLOpTy::Prim(p1)) => p0 == p1,
+            (HLOpTy::Error, HLOpTy::Error) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -151,6 +170,8 @@ impl View for HLOp {
                 Ty::Vec2 => "create vec2",
                 Ty::Vec3 => "create vec3",
                 Ty::Vec4 => "create vec4",
+                Ty::Int => "create int",
+                Ty::Sdf => "create sdf",
             },
         }
     }
@@ -199,6 +220,22 @@ pub struct HLGraph {
     pub identifier_table: AHashMap<String, Identified>,
 }
 
+impl HLGraph {
+    pub fn get_type(&self, loc: impl Into<AttribLocation>) -> Option<Ty> {
+        let loc: AttribLocation = loc.into();
+        self.type_table
+            .attrib(&loc)
+            .map(|ty| {
+                if ty.len() > 1 {
+                    println!("Warning {:?} has more than one type:\n{:#?}", loc, ty);
+                }
+                ty.get(0).clone()
+            })
+            .flatten()
+            .cloned()
+    }
+}
+
 ///Tries to parse the Highlevel graph from the
 pub fn hlgraph_from_ast(ast: Field, src_file: impl AsRef<Path>) -> Result<HLGraph, HLError> {
     let src_file = std::fs::read_to_string(src_file.as_ref()).unwrap();
@@ -214,7 +251,7 @@ pub fn hlgraph_from_ast(ast: Field, src_file: impl AsRef<Path>) -> Result<HLGrap
         graph.on_omega_node(|omega| {
             let import = omega.import();
             //register type and node
-            type_table.push_attrib(import.clone(), attrib.ty);
+            type_table.push_attrib(&import.clone().into(), attrib.ty);
             identifier_table.insert(
                 attrib.ident.0.clone(),
                 Identified::Arg {
@@ -257,9 +294,11 @@ fn tree_from_ast(
         Tree::Error => {
             report_error(HLError::AstError, Span::empty());
             let node = region.insert_node(HLOp::new(HLOpTy::Error, Span::empty()));
-            node.as_outport_location(OutputType::Output(node_push_output(
+            let out = node.as_outport_location(OutputType::Output(node_push_output(
                 region.ctx_mut().node_mut(node),
-            )))
+            )));
+            type_table.push_attrib(&out.clone().into(), Ty::Error);
+            out
         }
         Tree::Binary(BinaryOp {
             ty,
@@ -311,9 +350,11 @@ fn tree_from_ast(
                 )
                 .unwrap();
 
-            node.as_outport_location(OutputType::Output(node_push_output(
+            let out = node.as_outport_location(OutputType::Output(node_push_output(
                 region.ctx_mut().node_mut(node),
-            )))
+            )));
+            type_table.push_attrib(&out.clone().into(), Ty::Sdf);
+            out
         }
         Tree::Unary(UnaryOp {
             ty,
@@ -354,9 +395,11 @@ fn tree_from_ast(
                 )
                 .unwrap();
 
-            node.as_outport_location(OutputType::Output(node_push_output(
+            let out = node.as_outport_location(OutputType::Output(node_push_output(
                 region.ctx_mut().node_mut(node),
-            )))
+            )));
+            type_table.push_attrib(&out.clone().into(), Ty::Sdf);
+            out
         }
         Tree::Prim { prim, params, span } => {
             if let PrimTy::Error = prim {
@@ -382,9 +425,11 @@ fn tree_from_ast(
                     .unwrap();
             }
 
-            node.as_outport_location(OutputType::Output(node_push_output(
+            let out = node.as_outport_location(OutputType::Output(node_push_output(
                 region.ctx_mut().node_mut(node),
-            )))
+            )));
+            type_table.push_attrib(&out.clone().into(), Ty::Sdf);
+            out
         }
     }
 }
@@ -422,15 +467,20 @@ fn param_from_ast(
         Parameter::Lit(literal) => match literal {
             Literal::Float(f) => {
                 let node = region.insert_node(HLOp::new(HLOpTy::ConstFloat(f), Span::empty()));
-                node.as_outport_location(OutputType::Output(node_push_output(
+                let out = node.as_outport_location(OutputType::Output(node_push_output(
                     region.ctx_mut().node_mut(node),
-                )))
+                )));
+                type_table.push_attrib(&out.clone().into(), Ty::Float);
+                out
             }
             Literal::Int(i) => {
                 let node = region.insert_node(HLOp::new(HLOpTy::ConstInt(i), Span::empty()));
-                node.as_outport_location(OutputType::Output(node_push_output(
+
+                let out = node.as_outport_location(OutputType::Output(node_push_output(
                     region.ctx_mut().node_mut(node),
-                )))
+                )));
+                type_table.push_attrib(&out.clone().into(), Ty::Int);
+                out
             }
         },
         Parameter::TyConstructor { ty, params } => {
@@ -439,7 +489,7 @@ fn param_from_ast(
                 .map(|p| param_from_ast(p, region, type_table, identifier_table))
                 .collect();
             let constructor_node =
-                region.insert_node(HLOp::new(HLOpTy::TyConst(ty), Span::empty()));
+                region.insert_node(HLOp::new(HLOpTy::TyConst(ty.clone()), Span::empty()));
             for param in params {
                 let into_p_idx = node_push_input(region.ctx_mut().node_mut(constructor_node));
                 region
@@ -452,9 +502,11 @@ fn param_from_ast(
                     .unwrap();
             }
 
-            constructor_node.as_outport_location(OutputType::Output(node_push_output(
+            let out = constructor_node.as_outport_location(OutputType::Output(node_push_output(
                 region.ctx_mut().node_mut(constructor_node),
-            )))
+            )));
+            type_table.push_attrib(&out.clone().into(), ty);
+            out
         }
     }
 }

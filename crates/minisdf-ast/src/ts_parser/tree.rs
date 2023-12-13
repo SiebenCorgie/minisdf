@@ -105,7 +105,7 @@ pub fn parse_param(data: &[u8], node: &Node) -> Parameter {
     match child.kind() {
         "literal" => Parameter::Lit(parse_lit(data, &child.child(0).as_ref().unwrap())),
         "identifier" => Parameter::Ident(parse_ident(data, &child)),
-        "type_construct" => {
+        "type_constructor" => {
             let ty = parse_type(data, child.child(0).as_ref().unwrap());
             let params = parse_call_params(data, child.child(2).as_ref().unwrap());
             Parameter::TyConstructor { ty, params }
