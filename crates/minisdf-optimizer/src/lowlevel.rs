@@ -4,7 +4,8 @@
 //!
 //! Each λ-Node that was created returns a single float (the signed distance), per definition.
 
-use crate::{edge::OptEdge, HLGraph};
+use crate::{edge::OptEdge, err::OptError, highlevel::HLOpTy, HLGraph};
+use ahash::AHashMap;
 use minisdf_ast::Ty;
 use minisdf_common::Span;
 use rvsdg::{
@@ -12,7 +13,7 @@ use rvsdg::{
     edge::{OutportLocation, OutputType},
     nodes::LangNode,
     region::{Input, Output},
-    Rvsdg,
+    NodeRef, Rvsdg,
 };
 use tinyvec::TinyVec;
 
@@ -88,6 +89,8 @@ impl HLGraph {
         let mut llgraph = Rvsdg::new();
         let mut ll_type_table = AttribStore::new();
         let mut ll_labels = AttribStore::new();
+        //lookuptable that lets you map a hl NodeRef to a ll NodeRef,
+        let mut hl_ll_node_map: AHashMap<NodeRef, NodeRef> = AHashMap::default();
 
         //setup the ω-region's @ import, and copy all imports from the hl graph including type information
         let (at_import, sdf_export, params) = llgraph.on_omega_node(|omega| {
@@ -96,6 +99,8 @@ impl HLGraph {
             ll_labels.push_attrib(&at_import.clone().into(), "at".to_owned());
 
             let hl_omega_node = self.graph.entry_node();
+            //add the omega->omega mapping
+            hl_ll_node_map.insert(hl_omega_node, omega.on_region(|reg| reg.parent()));
             let mut cpy_params = Vec::new();
             //copy the import decls to the llgraph
             for (import_idx, _import) in self
@@ -143,4 +148,26 @@ impl HLGraph {
             labels: ll_labels,
         }
     }
+}
+
+///Emits all λ-nodes that can be called by any HLOpTy. Returns the lookup table for the λ-declerations
+fn emit_all_lambda_decls() -> AHashMap<HLOpTy, OutportLocation> {
+    let mut table = AHashMap::new();
+
+    todo!("build table");
+
+    table
+}
+
+fn map_node(
+    hl_node: NodeRef,
+    llgraph: Rvsdg<LLOp, OptEdge>,
+    ll_type_table: &mut AttribStore<Ty>,
+    ll_labels: AttribStore<String>,
+    lambda_decl_map: AHashMap<HLOpTy, OutportLocation>,
+    hl_ll_node_map: AHashMap<NodeRef, NodeRef>,
+) -> Result<(), OptError> {
+    //Recursive transformer
+
+    Ok(())
 }

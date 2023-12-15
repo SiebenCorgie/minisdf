@@ -1,15 +1,17 @@
 //! Highlevel representation of an SDF in an RVSDG, akin to the AST.
 //!
 
-use std::{path::Path, sync::Mutex};
+use std::path::Path;
 
-use crate::edge::OptEdge;
+use crate::{
+    edge::OptEdge,
+    err::{report_error, set_parse_string, OptError},
+};
 use ahash::AHashMap;
-use lazy_static::lazy_static;
 use minisdf_ast::{
     BinOpTy, BinaryOp, Field, Literal, Parameter, PrimTy, Tree, Ty, UnOpTy, UnaryOp,
 };
-use minisdf_common::{CommonError, ErrorPrintBundle, Span};
+use minisdf_common::Span;
 use rvsdg::{
     attrib::{AttribLocation, AttribStore},
     builder::RegionBuilder,
@@ -19,70 +21,7 @@ use rvsdg::{
     NodeRef, Rvsdg,
 };
 use rvsdg_viewer::View;
-use thiserror::Error;
 use tinyvec::TinyVec;
-
-//defines a global buffer for the string we are parsing
-lazy_static! {
-    static ref HLSRC: Mutex<Vec<String>> = Mutex::new(Vec::with_capacity(0));
-    static ref HL_LASTERR: Mutex<Option<CommonError<HLError>>> = Mutex::new(None);
-}
-
-///Sets the default file for reported errors.
-pub fn set_parse_string(file: &String) {
-    //TODO: split lines and push into TSSRC
-    let lines = file
-        .lines()
-        .into_iter()
-        .map(|line| line.to_owned())
-        .collect();
-    *HLSRC.lock().unwrap() = lines;
-}
-
-///Reports `error` on `span`
-pub fn report_error(error: HLError, span: Span) {
-    let error = CommonError::new(span, error);
-    println!(
-        "{}",
-        ErrorPrintBundle {
-            error: &error,
-            src_lines: &HLSRC.lock().as_ref().unwrap()
-        }
-    );
-    *HL_LASTERR.lock().unwrap() = Some(error);
-}
-
-#[derive(Debug, Error)]
-pub enum HLError {
-    #[error("Any HLError")]
-    Any,
-    #[error("Ast contained error node")]
-    AstError,
-    #[error("Highlevel graph contained error node")]
-    HLError,
-    #[error("Identifier {0} is not defined!")]
-    UndefinedIdent(String),
-    #[error("Expected variable of type {expect:?}, found {was:?}")]
-    TypeExpected { expect: Ty, was: Option<Ty> },
-    #[error("Expected input {0} to be subtree")]
-    SubtreeExpected(usize),
-    #[error("Expected input {0} to be connected")]
-    InputConnectionExpected(usize),
-    #[error("Expected input {0} to be existent")]
-    InputExpected(usize),
-    #[error("Too many inputs, expected {0} inputs, got {1}")]
-    TooManyInputs(usize, usize),
-    #[error("Expected HLOp {expect:?} got {was:?}")]
-    HlOpExpect { expect: HLOpTy, was: HLOpTy },
-    #[error("No type information for node {0:?}")]
-    NoTypeInfo(AttribLocation),
-}
-
-impl Default for HLError {
-    fn default() -> Self {
-        HLError::Any
-    }
-}
 
 #[derive(Debug, Clone)]
 pub enum HLOpTy {
@@ -107,6 +46,27 @@ impl HLOpTy {
             (HLOpTy::BinaryOp(b0), HLOpTy::BinaryOp(b1)) => b0 == b1,
             (HLOpTy::Prim(p0), HLOpTy::Prim(p1)) => p0 == p1,
             (HLOpTy::Error, HLOpTy::Error) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_op(&self) -> bool {
+        match self {
+            HLOpTy::BinaryOp(_) | HLOpTy::UnaryOp(_) | HLOpTy::TyConst(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_const(&self) -> bool {
+        match self {
+            HLOpTy::ConstFloat(_) | HLOpTy::ConstInt(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_prim(&self) -> bool {
+        match self {
+            HLOpTy::Prim(_) => true,
             _ => false,
         }
     }
@@ -237,7 +197,7 @@ impl HLGraph {
 }
 
 ///Tries to parse the Highlevel graph from the
-pub fn hlgraph_from_ast(ast: Field, src_file: impl AsRef<Path>) -> Result<HLGraph, HLError> {
+pub fn hlgraph_from_ast(ast: Field, src_file: impl AsRef<Path>) -> Result<HLGraph, OptError> {
     let src_file = std::fs::read_to_string(src_file.as_ref()).unwrap();
     set_parse_string(&src_file);
 
@@ -292,7 +252,7 @@ fn tree_from_ast(
     // as defined by the represented HLOp.
     match tree {
         Tree::Error => {
-            report_error(HLError::AstError, Span::empty());
+            report_error(OptError::AstError, Span::empty());
             let node = region.insert_node(HLOp::new(HLOpTy::Error, Span::empty()));
             let out = node.as_outport_location(OutputType::Output(node_push_output(
                 region.ctx_mut().node_mut(node),
@@ -308,7 +268,7 @@ fn tree_from_ast(
             span,
         }) => {
             if let BinOpTy::Error = ty {
-                report_error(HLError::AstError, span.clone());
+                report_error(OptError::AstError, span.clone());
             }
             //setup the unary node, recurse bot children and setup connections
             let left = tree_from_ast(*left, region, type_table, identifier_table);
@@ -363,7 +323,7 @@ fn tree_from_ast(
             span,
         }) => {
             if let UnOpTy::Error = ty {
-                report_error(HLError::AstError, span.clone());
+                report_error(OptError::AstError, span.clone());
             }
             let inner = tree_from_ast(*subtree, region, type_table, identifier_table);
             let node = region.insert_node(HLOp::new(HLOpTy::UnaryOp(ty), span));
@@ -403,7 +363,7 @@ fn tree_from_ast(
         }
         Tree::Prim { prim, params, span } => {
             if let PrimTy::Error = prim {
-                report_error(HLError::AstError, span.clone());
+                report_error(OptError::AstError, span.clone());
             }
             //just resolve the parameters then setup the prim node.
             let node = region.insert_node(HLOp::new(HLOpTy::Prim(prim), span));
@@ -443,7 +403,7 @@ fn param_from_ast(
 ) -> OutportLocation {
     match param {
         Parameter::Error => {
-            report_error(HLError::AstError, Span::empty());
+            report_error(OptError::AstError, Span::empty());
             let node = region.insert_node(HLOp::new(HLOpTy::Error, Span::empty()));
             node.as_outport_location(OutputType::Output(0))
         }
@@ -457,7 +417,7 @@ fn param_from_ast(
                     }
                 }
             } else {
-                report_error(HLError::UndefinedIdent(ident.0), Span::empty());
+                report_error(OptError::UndefinedIdent(ident.0), Span::empty());
                 let errornode = region.insert_node(HLOp::new(HLOpTy::Error, Span::empty()));
                 errornode.as_outport_location(OutputType::Output(node_push_output(
                     region.ctx_mut().node_mut(errornode),

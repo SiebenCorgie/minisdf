@@ -7,7 +7,8 @@ use rvsdg::{
 
 use crate::{
     edge::OptEdge,
-    highlevel::{report_error, HLError, HLOp, HLOpTy},
+    err::{report_error, OptError},
+    highlevel::{HLOp, HLOpTy},
     HLGraph,
 };
 
@@ -19,7 +20,7 @@ impl HLOp {
         }
     }
 
-    fn check_is_subtree(&self, hlg: &HLGraph, input_index: usize) -> Result<(), HLError> {
+    fn check_is_subtree(&self, hlg: &HLGraph, input_index: usize) -> Result<(), OptError> {
         //we expect both arguments to be sub trees
         if let Some(left) = self.inputs.get(input_index) {
             //assert that "left" is connected.
@@ -30,20 +31,25 @@ impl HLOp {
                     if n.is_subtree() {
                         Ok(())
                     } else {
-                        Err(HLError::SubtreeExpected(input_index))
+                        Err(OptError::SubtreeExpected(input_index))
                     }
                 } else {
-                    Err(HLError::SubtreeExpected(input_index))
+                    Err(OptError::SubtreeExpected(input_index))
                 }
             } else {
-                Err(HLError::InputConnectionExpected(input_index))
+                Err(OptError::InputConnectionExpected(input_index))
             }
         } else {
-            Err(HLError::InputExpected(0))
+            Err(OptError::InputExpected(0))
         }
     }
 
-    fn check_is_node_type(&self, hlg: &HLGraph, input_index: usize, ty: Ty) -> Result<(), HLError> {
+    fn check_is_node_type(
+        &self,
+        hlg: &HLGraph,
+        input_index: usize,
+        ty: Ty,
+    ) -> Result<(), OptError> {
         //we expect both arguments to be sub trees
         if let Some(left) = self.inputs.get(input_index) {
             //assert that "left" is connected.
@@ -54,44 +60,44 @@ impl HLOp {
                     if srcty == ty {
                         Ok(())
                     } else {
-                        Err(HLError::TypeExpected {
+                        Err(OptError::TypeExpected {
                             expect: ty,
                             was: Some(srcty),
                         })
                     }
                 } else {
-                    Err(HLError::NoTypeInfo(src.into()))
+                    Err(OptError::NoTypeInfo(src.into()))
                 }
             } else {
-                Err(HLError::InputConnectionExpected(input_index))
+                Err(OptError::InputConnectionExpected(input_index))
             }
         } else {
-            Err(HLError::InputExpected(0))
+            Err(OptError::InputExpected(0))
         }
     }
 
-    fn type_check(&self, hlg: &HLGraph) -> Result<(), HLError> {
+    fn type_check(&self, hlg: &HLGraph) -> Result<(), OptError> {
         match &self.ty {
             HLOpTy::BinaryOp(bop) => match bop {
-                BinOpTy::Error => Err(HLError::HLError),
+                BinOpTy::Error => Err(OptError::HLError),
                 //Signature is the same for all BinOps
                 BinOpTy::Intersection | BinOpTy::Subtraction | BinOpTy::Union => {
                     self.check_is_subtree(hlg, 0)?;
                     self.check_is_subtree(hlg, 1)?;
                     if self.inputs.len() > 2 {
-                        Err(HLError::TooManyInputs(2, self.inputs.len()))
+                        Err(OptError::TooManyInputs(2, self.inputs.len()))
                     } else {
                         Ok(())
                     }
                 }
             },
             HLOpTy::TyConst(ty) => match ty {
-                Ty::Error => Err(HLError::HLError),
+                Ty::Error => Err(OptError::HLError),
                 Ty::Float => {
                     //check that its a single argument, which is a float immediate
                     self.check_is_node_type(hlg, 0, Ty::Float)?;
                     if self.inputs.len() > 1 {
-                        Err(HLError::TooManyInputs(1, self.inputs.len()))
+                        Err(OptError::TooManyInputs(1, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -100,7 +106,7 @@ impl HLOp {
                     self.check_is_node_type(hlg, 0, Ty::Float)?;
                     self.check_is_node_type(hlg, 1, Ty::Float)?;
                     if self.inputs.len() > 2 {
-                        Err(HLError::TooManyInputs(2, self.inputs.len()))
+                        Err(OptError::TooManyInputs(2, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -110,7 +116,7 @@ impl HLOp {
                     self.check_is_node_type(hlg, 1, Ty::Float)?;
                     self.check_is_node_type(hlg, 2, Ty::Float)?;
                     if self.inputs.len() > 3 {
-                        Err(HLError::TooManyInputs(3, self.inputs.len()))
+                        Err(OptError::TooManyInputs(3, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -121,7 +127,7 @@ impl HLOp {
                     self.check_is_node_type(hlg, 2, Ty::Float)?;
                     self.check_is_node_type(hlg, 3, Ty::Float)?;
                     if self.inputs.len() > 4 {
-                        Err(HLError::TooManyInputs(4, self.inputs.len()))
+                        Err(OptError::TooManyInputs(4, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -129,7 +135,7 @@ impl HLOp {
                 Ty::Int => {
                     self.check_is_node_type(hlg, 0, Ty::Int)?;
                     if self.inputs.len() > 1 {
-                        Err(HLError::TooManyInputs(1, self.inputs.len()))
+                        Err(OptError::TooManyInputs(1, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -137,14 +143,14 @@ impl HLOp {
                 Ty::Sdf => {
                     //the SDF type has no arguments (atm)
                     if self.inputs.len() > 0 {
-                        Err(HLError::TooManyInputs(0, self.inputs.len()))
+                        Err(OptError::TooManyInputs(0, self.inputs.len()))
                     } else {
                         Ok(())
                     }
                 }
             },
             HLOpTy::UnaryOp(uop) => match uop {
-                UnOpTy::Error => Err(HLError::HLError),
+                UnOpTy::Error => Err(OptError::HLError),
                 UnOpTy::Repeat => {
                     //3 floats as arguments, then a subtree
                     self.check_is_node_type(hlg, 0, Ty::Float)?;
@@ -152,7 +158,7 @@ impl HLOp {
                     self.check_is_node_type(hlg, 2, Ty::Float)?;
                     self.check_is_subtree(hlg, 3)?;
                     if self.inputs.len() > 4 {
-                        Err(HLError::TooManyInputs(4, self.inputs.len()))
+                        Err(OptError::TooManyInputs(4, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -162,7 +168,7 @@ impl HLOp {
                     self.check_is_node_type(hlg, 0, Ty::Float)?;
                     self.check_is_subtree(hlg, 1)?;
                     if self.inputs.len() > 2 {
-                        Err(HLError::TooManyInputs(2, self.inputs.len()))
+                        Err(OptError::TooManyInputs(2, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -172,19 +178,19 @@ impl HLOp {
                     self.check_is_node_type(hlg, 0, Ty::Vec3)?;
                     self.check_is_subtree(hlg, 1)?;
                     if self.inputs.len() > 2 {
-                        Err(HLError::TooManyInputs(2, self.inputs.len()))
+                        Err(OptError::TooManyInputs(2, self.inputs.len()))
                     } else {
                         Ok(())
                     }
                 }
             },
             HLOpTy::Prim(t) => match t {
-                PrimTy::Error => Err(HLError::HLError),
+                PrimTy::Error => Err(OptError::HLError),
                 PrimTy::Box => {
                     //single vec3
                     self.check_is_node_type(hlg, 0, Ty::Vec3)?;
                     if self.inputs.len() > 1 {
-                        Err(HLError::TooManyInputs(1, self.inputs.len()))
+                        Err(OptError::TooManyInputs(1, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -194,7 +200,7 @@ impl HLOp {
                     self.check_is_node_type(hlg, 0, Ty::Vec3)?;
                     self.check_is_node_type(hlg, 1, Ty::Float)?;
                     if self.inputs.len() > 2 {
-                        Err(HLError::TooManyInputs(2, self.inputs.len()))
+                        Err(OptError::TooManyInputs(2, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -203,7 +209,7 @@ impl HLOp {
                     //single float
                     self.check_is_node_type(hlg, 0, Ty::Float)?;
                     if self.inputs.len() > 1 {
-                        Err(HLError::TooManyInputs(1, self.inputs.len()))
+                        Err(OptError::TooManyInputs(1, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -213,7 +219,7 @@ impl HLOp {
                     self.check_is_node_type(hlg, 0, Ty::Float)?;
                     self.check_is_node_type(hlg, 1, Ty::Float)?;
                     if self.inputs.len() > 2 {
-                        Err(HLError::TooManyInputs(2, self.inputs.len()))
+                        Err(OptError::TooManyInputs(2, self.inputs.len()))
                     } else {
                         Ok(())
                     }
@@ -221,12 +227,12 @@ impl HLOp {
             },
             HLOpTy::ConstFloat(_) | HLOpTy::ConstInt(_) => {
                 if self.inputs.len() > 0 {
-                    Err(HLError::TooManyInputs(0, self.inputs.len()))
+                    Err(OptError::TooManyInputs(0, self.inputs.len()))
                 } else {
                     Ok(())
                 }
             }
-            HLOpTy::Error => Err(HLError::HLError),
+            HLOpTy::Error => Err(OptError::HLError),
         }
     }
 }

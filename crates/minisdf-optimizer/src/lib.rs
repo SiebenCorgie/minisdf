@@ -1,4 +1,5 @@
 mod edge;
+mod err;
 mod highlevel;
 mod lowlevel;
 mod type_check;
