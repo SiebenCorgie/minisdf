@@ -32,7 +32,7 @@ pub enum Parameter {
     Error,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum UnOpTy {
     Translate,
     Repeat,
@@ -48,7 +48,7 @@ pub struct UnaryOp {
     pub span: Span,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum BinOpTy {
     Union,
     Subtraction,
@@ -65,7 +65,7 @@ pub struct BinaryOp {
     pub span: Span,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum PrimTy {
     Box,
     Sphere,

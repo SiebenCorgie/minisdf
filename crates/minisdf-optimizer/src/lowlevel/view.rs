@@ -20,6 +20,9 @@ impl View for LLOp {
             LLOpTy::Mul => "mul",
             LLOpTy::Round => "round",
             LLOpTy::Sub => "sub",
+            LLOpTy::ImmF32(_) => "f32",
+            LLOpTy::ImmI32(_) => "i32",
+            LLOpTy::TypeConstruct(_) => "type_constructor",
         }
     }
     fn stroke(&self) -> rvsdg_viewer::Stroke {
