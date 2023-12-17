@@ -78,6 +78,15 @@ impl<'a, E: std::error::Error + Default> Display for ErrorPrintBundle<'a, E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let ErrorPrintBundle { error, src_lines } = self;
         let error_str = error.source.to_string();
+        let error_primitive_string = format!(
+            "{}:{} .. {}:{}",
+            error.span.from.0, error.span.from.1, error.span.to.0, error.span.to.1
+        );
+        //If we have no span, just print the error
+        if error.span.from == error.span.to {
+            return write!(f, "{} : {}", error_primitive_string, error_str);
+        }
+
         //NOTE: usually an error is only on one line / at one point. However,
         // sometimes it goes over multiple lines. In this case, this makes sure we only
         // attach annotation to the last line, by clamping to the first line + start offset, and last line - start offset
@@ -112,7 +121,7 @@ impl<'a, E: std::error::Error + Default> Display for ErrorPrintBundle<'a, E> {
 
             Snippet {
                 title: Some(Annotation {
-                    label: Some("CommonError"),
+                    label: Some(&error_primitive_string),
                     id: None, //TODO might want to turn those into error IDs at some point
                     annotation_type: AnnotationType::Error,
                 }),
@@ -127,7 +136,7 @@ impl<'a, E: std::error::Error + Default> Display for ErrorPrintBundle<'a, E> {
             //Simple single line reporting
             Snippet {
                 title: Some(Annotation {
-                    label: None,
+                    label: Some(&error_primitive_string),
                     id: None, //TODO might want to turn those into error IDs at some point
                     annotation_type: AnnotationType::Error,
                 }),

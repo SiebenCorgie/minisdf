@@ -10,6 +10,29 @@ Proof of concept RVSDG based compiler for a simple SignedDistanceField language.
 `minisdf-optimizer`: The RVSDG based optimizer / _middle-end_. Takes an AST and builds a RVSDG representation using basic lowlevel-_ish_ operations. 
 
 
+## Example
+
+The following example defines a field that subtracts smoothed-box from a unit box that repeats in the domain 4³.
+
+The offset of the subtracted box is set by an external `offset` parameter. Which can be animated through the calling 
+shader.
+
+```
+field myfield(offset: vec3){
+    sub(){
+        repeat(4.0, 4.0, 4.0){
+            box(vec3(1.0, 1.0, 1.0))
+        }
+    }{
+        translate(offset){
+            smooth(0.25){
+                box(vec3(1.0, 1.0, 2.0))
+            }
+        }
+    }
+}
+```
+
 ## License
 
 Licensed under either of

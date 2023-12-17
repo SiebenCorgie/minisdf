@@ -28,7 +28,7 @@ pub fn parse_unopty(data: &[u8], node: &Node) -> UnOpTy {
 }
 
 pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
-    if TSParseError::check_token(node, "binary_op") {
+    if !TSParseError::check_token(node, "binary_op") {
         return BinOpTy::Error;
     }
 
@@ -52,7 +52,7 @@ pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
 }
 
 pub fn parse_prim_ty(data: &[u8], node: &Node) -> PrimTy {
-    if TSParseError::check_token(node, "prim") {
+    if !TSParseError::check_token(node, "prim") {
         return PrimTy::Error;
     }
 
@@ -63,7 +63,6 @@ pub fn parse_prim_ty(data: &[u8], node: &Node) -> PrimTy {
         }
         Ok(s) => s.to_owned(),
     };
-
     match name.as_str() {
         "box" => PrimTy::Box,
         "sphere" => PrimTy::Sphere,
@@ -106,7 +105,7 @@ pub fn parse_param(data: &[u8], node: &Node) -> Parameter {
     match child.kind() {
         "literal" => Parameter::Lit(parse_lit(data, &child.child(0).as_ref().unwrap())),
         "identifier" => Parameter::Ident(parse_ident(data, &child)),
-        "type_construct" => {
+        "type_constructor" => {
             let ty = parse_type(data, child.child(0).as_ref().unwrap());
             let params = parse_call_params(data, child.child(2).as_ref().unwrap());
             Parameter::TyConstructor { ty, params }
@@ -164,6 +163,7 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
                 parameter: params,
                 left: Box::new(sub_a),
                 right: Box::new(sub_b),
+                span: Span::from(node),
             })
         }
         "unary_call" => {
@@ -185,6 +185,7 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
                 ty: op,
                 parameter: params,
                 subtree: Box::new(sub),
+                span: Span::from(node),
             })
         }
         "prim_call" => {
@@ -201,7 +202,11 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
             let closing = node.child(3).unwrap();
             let _ = TSParseError::check_token(&closing, ")");
 
-            Tree::Prim { prim, params }
+            Tree::Prim {
+                prim,
+                params,
+                span: Span::from(node),
+            }
         }
         _ => {
             report_error(

@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 minisdf-ast = {path = "../../crates/minisdf-ast"}
+minisdf-optimizer = {path = "../../crates/minisdf-optimizer"}
+rvsdg-viewer = {path = "../../../vola/crates/rvsdg-viewer"}
