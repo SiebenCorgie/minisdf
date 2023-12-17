@@ -55,7 +55,7 @@ pub enum LLOpTy {
     ///Selects the n-th coord of a vector.
     ///
     /// `n` needs to be an integer < the arity of the vector argument
-    CoordSelect,
+    CoordSelect(usize),
 
     Abs,
     ///Dot product of two same-arity vectors.
@@ -343,7 +343,6 @@ pub fn build_call_trees(
     match &node.ty {
         HLOpTy::BinaryOp(bop) => {
             //if there is an on_at call involved, append to the at_tree, otherwise don't.
-            println!("BinOp: {:?}", bop);
             let call_arg_range = node.inputs.len() - 2;
             let mut args = (0..call_arg_range)
                 .into_iter()
@@ -409,8 +408,8 @@ pub fn build_call_trees(
                 on_at: false,
             }) {
                 //push both sdfs
-                args.push(sdf0);
-                args.push(sdf1);
+                args.insert(call_arg_range, sdf0);
+                args.insert(call_arg_range + 1, sdf1);
 
                 let (apply_node, _) = ll_region
                     .call(on_at_lambda.clone(), &args[..args.len() - 1])
@@ -421,7 +420,6 @@ pub fn build_call_trees(
             }
         }
         HLOpTy::UnaryOp(uop) => {
-            println!("UnOp: {:?}", uop);
             //Unary calls work similar to binary calls. But this time both, pre and post evaluation rules
             // are optional.
             let call_arg_range = node.inputs.len() - 1;
@@ -470,7 +468,7 @@ pub fn build_call_trees(
                 on_at: false,
             }) {
                 //push both sdfs
-                args.push(sdf0);
+                args.insert(call_arg_range, sdf0);
 
                 let (apply_node, _) = ll_region
                     .call(on_at_lambda.clone(), &args[0..args.len() - 1])
@@ -481,7 +479,6 @@ pub fn build_call_trees(
             }
         }
         HLOpTy::Prim(p) => {
-            println!("Prim: {:?}", p);
             //primitive calculation is at the _middle_ of both of our trees. It ties the ll_at_stack to the sdf tree, by
             // evaluating the sdf at the _at_
             let op = if let Some(op) = lambda_lt.get(&LambdaLookupKey::Prim { prim: p.clone() }) {

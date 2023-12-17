@@ -10,7 +10,7 @@ impl View for LLOp {
         match &self.ty {
             LLOpTy::Abs => "abs",
             LLOpTy::Add => "add",
-            LLOpTy::CoordSelect => "coord select",
+            LLOpTy::CoordSelect(_) => "coord select",
             LLOpTy::Div => "div",
             LLOpTy::Dot => "dot",
             LLOpTy::Error => "error",

@@ -36,7 +36,7 @@ fn build_binary_op_ty<R: StructuralNode>(
         //a binary op is defined by operating on two sdf values, and no input in our case
         let left = lmd.add_argument();
         let right = lmd.add_argument();
-        let _output = lmd.add_result();
+        let output = lmd.add_result();
 
         lmd.on_region(|reg| {
             //use the inputs to do min/max and possibly negate "right", based on our op_ty
@@ -89,11 +89,13 @@ fn build_binary_op_ty<R: StructuralNode>(
                 }
             };
 
-            reg.connect_to_result(
-                result.as_outport_location(OutputType::Output(0)),
-                rvsdg::edge::InputType::Result(0),
-            )
-            .expect("Could not connect binary_op_result to lambda's result port[0]");
+            reg.ctx_mut()
+                .connect(
+                    result.as_outport_location(OutputType::Output(0)),
+                    output,
+                    OptEdge::Value,
+                )
+                .unwrap()
         });
     });
 
@@ -152,7 +154,7 @@ fn build_smooth_lambda<R: StructuralNode>(
         //Defined by the type_check, first roundness, then sdf value
         let roundness_input = lmd.add_argument();
         let sdf_input = lmd.add_argument();
-        let _sdf_output = lmd.add_result();
+        let sdf_output = lmd.add_result();
 
         lmd.on_region(|reg| {
             let (subtracted, _) = reg
@@ -163,12 +165,14 @@ fn build_smooth_lambda<R: StructuralNode>(
                     &[sdf_input, roundness_input],
                 )
                 .expect("Could not subtract in smooth op");
-            let _ = reg
-                .connect_to_result(
+
+            reg.ctx_mut()
+                .connect(
                     subtracted.as_outport_location(OutputType::Output(0)),
-                    InputType::Result(0),
+                    sdf_output,
+                    OptEdge::Value,
                 )
-                .expect("Could not set subtraction to result routing");
+                .unwrap()
         });
     });
 

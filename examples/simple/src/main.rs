@@ -20,16 +20,17 @@ fn main() {
             return;
         }
         let ll_graph = hltree.into_ll_graph();
-
-        for node in ll_graph.graph.walk_reachable() {
-            match &ll_graph.graph.node(node).node_type {
-                NodeType::Simple(s) => println!("Simple: {} : {}", s.name(), node),
-                NodeType::Lambda(_) => println!("Lambda: {}", node),
-                NodeType::Omega(_) => println!("Omega: {}", node),
-                _ => println!("Wrong node type!"),
-            }
-        }
-
+        /*
+                for node in ll_graph.graph.walk_reachable() {
+                    match &ll_graph.graph.node(node).node_type {
+                        NodeType::Simple(s) => println!("Simple: {} : {}", s.name(), node),
+                        NodeType::Lambda(_) => println!("Lambda: {}", node),
+                        NodeType::Omega(_) => println!("Omega: {}", node),
+                        NodeType::Apply(_) => println!("Apply: {}", node),
+                        _ => println!("Wrong node type!"),
+                    }
+                }
+        */
         rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}.svg", name));
     }
 }
