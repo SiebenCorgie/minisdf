@@ -244,7 +244,7 @@ pub fn hlgraph_from_ast(ast: Field, src_file: impl AsRef<Path>) -> Result<HLGrap
 //transforms a ASTNode to an RVSDGNode, returns the output port of the ASTNode
 fn tree_from_ast(
     tree: Tree,
-    region: &mut RegionBuilder<HLOp, OptEdge, OmegaNode>,
+    region: &mut RegionBuilder<HLOp, OptEdge>,
     type_table: &mut AttribStore<Ty>,
     identifier_table: &mut AHashMap<String, Identified>,
 ) -> OutportLocation {
@@ -397,7 +397,7 @@ fn tree_from_ast(
 ///Creates the parameter's output (typed, if possible), or an error node.
 fn param_from_ast(
     param: Parameter,
-    region: &mut RegionBuilder<HLOp, OptEdge, OmegaNode>,
+    region: &mut RegionBuilder<HLOp, OptEdge>,
     type_table: &mut AttribStore<Ty>,
     identifier_table: &mut AHashMap<String, Identified>,
 ) -> OutportLocation {
