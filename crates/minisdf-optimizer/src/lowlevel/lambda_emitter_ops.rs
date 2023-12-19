@@ -66,7 +66,7 @@ fn build_binary_op_ty(
                 BinOpTy::Subtraction => {
                     //need to negate "left"
                     let minus_one = reg.insert_node(
-                        LLOp::new(LLOpTy::ImmF32(-1.0), Span::empty()).with_outputs(1),
+                        LLOp::new(LLOpTy::imm_f32(-1.0), Span::empty()).with_outputs(1),
                     );
                     let (negated, _) = reg
                         .connect_node(

@@ -35,5 +35,8 @@ fn main() {
 
         ll_graph.inline();
         rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_inline.svg", name));
+
+        ll_graph.cne();
+        rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_cne.svg", name));
     }
 }

@@ -143,7 +143,7 @@ pub fn build_lambda_box(
 
             let (def_zero, _) = reg
                 .connect_node(
-                    LLOp::new(LLOpTy::ImmF32(0.0), Span::empty())
+                    LLOp::new(LLOpTy::imm_f32(0.0), Span::empty())
                         .with_inputs(0)
                         .with_outputs(1),
                     &[],

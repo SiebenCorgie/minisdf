@@ -27,13 +27,14 @@ use self::{
     lambda_emitter_prims::build_lambda_prims,
 };
 
+mod cne;
 mod emit_walker;
 mod inline;
 mod lambda_emitter_ops;
 mod lambda_emitter_prims;
 mod view;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LLOpTy {
     Error,
 
@@ -60,9 +61,16 @@ pub enum LLOpTy {
     ///Dot product of two same-arity vectors.
     Dot,
 
-    ImmF32(f32),
+    //NOTE 32bit representation of a float
+    ImmF32(u32),
     ImmI32(i32),
     TypeConstruct(Ty),
+}
+
+impl LLOpTy {
+    pub fn imm_f32(f: f32) -> Self {
+        Self::ImmF32(f.to_bits())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -268,7 +276,7 @@ fn arg_to_outport(
 
     match &src_hl_node.ty {
         HLOpTy::ConstFloat(f) => ll_region
-            .insert_node(LLOp::new(LLOpTy::ImmF32(*f), Span::empty()).with_outputs(1))
+            .insert_node(LLOp::new(LLOpTy::imm_f32(*f), Span::empty()).with_outputs(1))
             .as_outport_location(OutputType::Output(0)),
 
         HLOpTy::ConstInt(i) => ll_region
