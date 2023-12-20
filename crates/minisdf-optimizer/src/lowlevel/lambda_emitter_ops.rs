@@ -4,15 +4,14 @@ use minisdf_common::Span;
 use rvsdg::{
     builder::RegionBuilder,
     edge::{InputType, OutportLocation, OutputType},
-    nodes::StructuralNode,
 };
 
 use crate::edge::OptEdge;
 
 use super::{emit_walker::LambdaLookupKey, LLOp, LLOpTy};
 
-pub fn build_lambda_ops<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+pub fn build_lambda_ops(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     //build all lookup definitions on this region
@@ -24,8 +23,8 @@ pub fn build_lambda_ops<R: StructuralNode>(
     build_translate_lambda(region, lambda_lt);
 }
 
-fn build_binary_op_ty<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+fn build_binary_op_ty(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
     op_ty: BinOpTy,
 ) {
@@ -67,7 +66,7 @@ fn build_binary_op_ty<R: StructuralNode>(
                 BinOpTy::Subtraction => {
                     //need to negate "left"
                     let minus_one = reg.insert_node(
-                        LLOp::new(LLOpTy::ImmF32(-1.0), Span::empty()).with_outputs(1),
+                        LLOp::new(LLOpTy::imm_f32(-1.0), Span::empty()).with_outputs(1),
                     );
                     let (negated, _) = reg
                         .connect_node(
@@ -108,8 +107,8 @@ fn build_binary_op_ty<R: StructuralNode>(
     );
 }
 
-fn build_translate_lambda<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+fn build_translate_lambda(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     //Lambda has only the "on_at" step, by moving the @ paramter in the opposite direction
@@ -145,8 +144,8 @@ fn build_translate_lambda<R: StructuralNode>(
     );
 }
 
-fn build_smooth_lambda<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+fn build_smooth_lambda(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     //The smooth op operates only on the sdf value returned by its child, by just subtracting the smoothness value
@@ -185,8 +184,8 @@ fn build_smooth_lambda<R: StructuralNode>(
     );
 }
 
-fn build_repeat_lambda<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+fn build_repeat_lambda(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     //repetition also "only" has the "on_at" part. It lets us round the @ to an "in interval" representation.

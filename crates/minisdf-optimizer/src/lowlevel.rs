@@ -4,8 +4,6 @@
 //!
 //! Each λ-Node that was created returns a single float (the signed distance), per definition.
 
-use std::collections::VecDeque;
-
 use crate::{
     edge::OptEdge,
     highlevel::{HLOp, HLOpTy},
@@ -29,12 +27,14 @@ use self::{
     lambda_emitter_prims::build_lambda_prims,
 };
 
+mod cne;
 mod emit_walker;
+mod inline;
 mod lambda_emitter_ops;
 mod lambda_emitter_prims;
 mod view;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LLOpTy {
     Error,
 
@@ -61,12 +61,19 @@ pub enum LLOpTy {
     ///Dot product of two same-arity vectors.
     Dot,
 
-    ImmF32(f32),
+    //NOTE 32bit representation of a float
+    ImmF32(u32),
     ImmI32(i32),
     TypeConstruct(Ty),
 }
 
-#[derive(Debug)]
+impl LLOpTy {
+    pub fn imm_f32(f: f32) -> Self {
+        Self::ImmF32(f.to_bits())
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct LLOp {
     pub ty: LLOpTy,
     //The source span this op originates from.
@@ -92,6 +99,13 @@ impl LLOp {
     pub fn with_outputs(mut self, output_count: usize) -> Self {
         self.outputs.resize(output_count, Output::default());
         self
+    }
+
+    ///Copies this nodes definition, but does not transfer the ports, only the amount of ports available
+    pub fn shallow_copy(&self) -> Self {
+        LLOp::new(self.ty.clone(), self.span.clone())
+            .with_inputs(self.inputs.len())
+            .with_outputs(self.outputs.len())
     }
 }
 
@@ -212,8 +226,8 @@ impl HLGraph {
     }
 }
 
-pub fn build_lambda_lt<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+pub fn build_lambda_lt(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     build_lambda_ops(region, lambda_lt);
@@ -227,7 +241,7 @@ fn arg_to_outport(
     node: &HLOp,
     arg: usize,
     hl_graph: &HLGraph,
-    ll_region: &mut RegionBuilder<LLOp, OptEdge, OmegaNode>,
+    ll_region: &mut RegionBuilder<LLOp, OptEdge>,
 ) -> OutportLocation {
     let arg = {
         let edg = node.inputs[arg]
@@ -262,7 +276,7 @@ fn arg_to_outport(
 
     match &src_hl_node.ty {
         HLOpTy::ConstFloat(f) => ll_region
-            .insert_node(LLOp::new(LLOpTy::ImmF32(*f), Span::empty()).with_outputs(1))
+            .insert_node(LLOp::new(LLOpTy::imm_f32(*f), Span::empty()).with_outputs(1))
             .as_outport_location(OutputType::Output(0)),
 
         HLOpTy::ConstInt(i) => ll_region
@@ -332,7 +346,7 @@ pub fn build_call_trees(
     hl_graph: &HLGraph,
     lambda_lt: &AHashMap<LambdaLookupKey, OutportLocation>,
     ll_at_stack_port: OutportLocation,
-    ll_region: &mut RegionBuilder<LLOp, OptEdge, OmegaNode>,
+    ll_region: &mut RegionBuilder<LLOp, OptEdge>,
 ) -> OutportLocation {
     let node = if let NodeType::Simple(s) = &hl_graph.graph.node(hl_node).node_type {
         s

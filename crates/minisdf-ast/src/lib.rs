@@ -4,7 +4,7 @@ mod ts_parser;
 use minisdf_common::Span;
 pub use ts_parser::parse_file;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Ty {
     Float,
     Vec2,

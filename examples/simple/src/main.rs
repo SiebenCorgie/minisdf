@@ -19,7 +19,7 @@ fn main() {
             println!("Type check failed 😭");
             return;
         }
-        let ll_graph = hltree.into_ll_graph();
+        let mut ll_graph = hltree.into_ll_graph();
         /*
                 for node in ll_graph.graph.walk_reachable() {
                     match &ll_graph.graph.node(node).node_type {
@@ -32,5 +32,11 @@ fn main() {
                 }
         */
         rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}.svg", name));
+
+        ll_graph.inline();
+        rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_inline.svg", name));
+
+        ll_graph.cne();
+        rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_cne.svg", name));
     }
 }

@@ -11,8 +11,8 @@ use crate::edge::OptEdge;
 
 use super::{emit_walker::LambdaLookupKey, LLOp, LLOpTy};
 
-pub fn build_lambda_prims<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+pub fn build_lambda_prims(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     build_lambda_sphere(region, lambda_lt);
@@ -21,8 +21,8 @@ pub fn build_lambda_prims<R: StructuralNode>(
     build_lambda_plane(region, lambda_lt);
 }
 
-pub fn build_lambda_sphere<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+pub fn build_lambda_sphere(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     let (lambda_sphere, _) = region.new_function(|lmd| {
@@ -70,8 +70,8 @@ pub fn build_lambda_sphere<R: StructuralNode>(
     );
 }
 
-pub fn build_lambda_box<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+pub fn build_lambda_box(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     //Represents this code:
@@ -143,7 +143,7 @@ pub fn build_lambda_box<R: StructuralNode>(
 
             let (def_zero, _) = reg
                 .connect_node(
-                    LLOp::new(LLOpTy::ImmF32(0.0), Span::empty())
+                    LLOp::new(LLOpTy::imm_f32(0.0), Span::empty())
                         .with_inputs(0)
                         .with_outputs(1),
                     &[],
@@ -247,8 +247,8 @@ pub fn build_lambda_box<R: StructuralNode>(
     );
 }
 
-pub fn build_lambda_torus<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+pub fn build_lambda_torus(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     let (lambda_torus, _) = region.new_function(|lmd| {
@@ -360,8 +360,8 @@ pub fn build_lambda_torus<R: StructuralNode>(
     );
 }
 
-pub fn build_lambda_plane<R: StructuralNode>(
-    region: &mut RegionBuilder<LLOp, OptEdge, R>,
+pub fn build_lambda_plane(
+    region: &mut RegionBuilder<LLOp, OptEdge>,
     lambda_lt: &mut AHashMap<LambdaLookupKey, OutportLocation>,
 ) {
     let (lambda_plane, _) = region.new_function(|lmd| {

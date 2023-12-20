@@ -1,6 +1,7 @@
 use rvsdg::edge::LangEdge;
 use rvsdg_viewer::View;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OptEdge {
     State,
     Value,
