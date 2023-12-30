@@ -32,6 +32,8 @@ mod emit_walker;
 mod inline;
 mod lambda_emitter_ops;
 mod lambda_emitter_prims;
+mod type_resolve;
+mod verify;
 mod view;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -125,6 +127,7 @@ impl LangNode for LLOp {
 }
 
 pub struct LLGraph {
+    pub name: String,
     pub graph: Rvsdg<LLOp, OptEdge>,
     pub type_table: AttribStore<Ty>,
     //debugging label
@@ -219,6 +222,7 @@ impl HLGraph {
         });
 
         LLGraph {
+            name: self.name,
             graph: llgraph,
             type_table: ll_type_table,
             labels: ll_labels,

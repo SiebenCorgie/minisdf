@@ -1,3 +1,4 @@
+use minisdf_backend_spirv::{rspirv::binary::Disassemble, SpirvBackend};
 use minisdf_optimizer::rvsdg::nodes::NodeType;
 use rvsdg_viewer::View;
 
@@ -33,10 +34,17 @@ fn main() {
         */
         rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}.svg", name));
 
+        ll_graph.verify().unwrap();
+
         ll_graph.inline();
         rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_inline.svg", name));
 
         ll_graph.cne();
         rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_cne.svg", name));
+
+        ll_graph.type_resolve().unwrap();
+
+        let spvmod = ll_graph.lower().unwrap();
+        println!("{}", spvmod.disassemble());
     }
 }

@@ -37,7 +37,7 @@ pub fn report_error(error: OptError, span: Span) {
     *OPT_LASTERR.lock().unwrap() = Some(error);
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone)]
 pub enum OptError {
     #[error("Any HLError")]
     Any,
@@ -45,6 +45,8 @@ pub enum OptError {
     AstError,
     #[error("Highlevel graph contained error node")]
     HLError,
+    #[error("{0}")]
+    LLError(String),
     #[error("Identifier {0} is not defined!")]
     UndefinedIdent(String),
     #[error("Expected variable of type {expect:?}, found {was:?}")]
@@ -61,6 +63,10 @@ pub enum OptError {
     HlOpExpect { expect: HLOpTy, was: HLOpTy },
     #[error("No type information for node {0:?}")]
     NoTypeInfo(AttribLocation),
+    #[error("Binary operation type missmatch. Expected {0:?} / {1:?} but was {2:?} / {3:?}")]
+    BinOpTypeMissmatch(Ty, Ty, Ty, Ty),
+    #[error("Vector of length {0} indexed with {1}")]
+    VectorOOB(usize, usize),
 }
 
 impl Default for OptError {
