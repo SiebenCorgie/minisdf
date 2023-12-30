@@ -11,6 +11,8 @@ Proof of concept RVSDG based compiler for a simple SignedDistanceField language.
 
 `minisdf-backend-spirv`: simple SPIR-V backend based on [rspirv](https://crates.io/crates/rspirv).
 
+`msdfc`: **M**ini**Sdf** **C**ompiler: Simple library that accepts a miniSDF compiler source file, or AST, and generates, if possible, a SPIR-V Binary.
+
 ## Example
 
 The following example defines a field that subtracts smoothed-box from a unit box that repeats in the domain 4³.

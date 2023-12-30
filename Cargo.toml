@@ -8,9 +8,10 @@ members = [
 "crates/minisdf-common",
 "crates/minisdf-optimizer",
 "crates/minisdf-backend-spirv",
+"crates/msdfc",
 
 "examples/simple"
-]
+, "crates/msdfc"]
 
 
 [workspace.dependencies]

@@ -1,5 +1,4 @@
 use ahash::AHashMap;
-use err::LoweringError;
 use minisdf_ast::Ty;
 use minisdf_optimizer::{
     rvsdg::{
@@ -15,6 +14,7 @@ use rspirv::{
     spirv::{self, Decoration, FunctionControl, LinkageType, Word},
 };
 mod err;
+pub use err::LoweringError;
 mod lltraversal;
 
 pub trait SpirvBackend {

@@ -3,6 +3,7 @@
 mod ts_parser;
 use minisdf_common::Span;
 pub use ts_parser::parse_file;
+pub use ts_parser::TSParseError;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Ty {

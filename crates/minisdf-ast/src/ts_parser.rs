@@ -11,7 +11,7 @@ use crate::{
     Field, Ident, TypedArg,
 };
 
-use self::err::TSParseError;
+pub use self::err::TSParseError;
 use minisdf_common::ErrorPrintBundle;
 mod err;
 mod tree;
