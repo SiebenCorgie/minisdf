@@ -124,7 +124,7 @@ impl<'a> LoweringCtx<'a> {
             }
             LLOpTy::CoordSelect(selection) => {
                 //for coord select, we use the
-                // OpAccessChain with a the constant `selection` index to extract our vector's
+                // OpCompositeExtract with a the constant `selection` index to extract our vector's
                 // element.
                 assert!(
                     args.len() == 1,
@@ -132,10 +132,14 @@ impl<'a> LoweringCtx<'a> {
                 );
 
                 //emit thae access chain
-                let ty_u32 = self.builder.type_int(32, 0);
-                let element_id = self.builder.constant_u32(ty_u32, selection as u32);
-                self.builder
-                    .access_chain(result_ty, None, args[0].unwrap_id_ref(), [element_id])?
+                //let ty_u32 = self.builder.type_int(32, 0);
+                //let element_id = self.builder.constant_u32(ty_u32, selection as u32);
+                self.builder.composite_extract(
+                    result_ty,
+                    None,
+                    args[0].unwrap_id_ref(),
+                    [selection as u32],
+                )?
             }
             LLOpTy::Dot => {
                 //use the native dot instruction

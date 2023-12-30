@@ -10,3 +10,4 @@ minisdf-ast = {path = "../../crates/minisdf-ast"}
 minisdf-optimizer = {path = "../../crates/minisdf-optimizer"}
 minisdf-backend-spirv = {path = "../../crates/minisdf-backend-spirv"}
 rvsdg-viewer = {path = "../../../vola/crates/rvsdg-viewer"}
+bytemuck = "1.14"

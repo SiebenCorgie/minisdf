@@ -4,10 +4,14 @@ field myfield(offset_x: float, offset_y: float){
             box(vec3(1.0, 1.0, 1.0))
         }
     }{
-        translate(vec3(offset_x, offset_y, 0.0)){
-            smooth(0.25){
-                box(vec3(1.0, 1.0, 2.0))
+        union(){
+            translate(vec3(offset_x, offset_y, 0.0)){
+                smooth(0.25){
+                    box(vec3(1.0, 1.0, 2.0))
+                }
             }
+        }{
+            torus(1.0, 2.0)
         }
     }
 }

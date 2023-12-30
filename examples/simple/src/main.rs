@@ -1,4 +1,7 @@
-use minisdf_backend_spirv::{rspirv::binary::Disassemble, SpirvBackend};
+use minisdf_backend_spirv::{
+    rspirv::binary::{Assemble, Disassemble},
+    SpirvBackend,
+};
 use minisdf_optimizer::rvsdg::nodes::NodeType;
 use rvsdg_viewer::View;
 
@@ -45,6 +48,8 @@ fn main() {
         ll_graph.type_resolve().unwrap();
 
         let spvmod = ll_graph.lower().unwrap();
-        println!("{}", spvmod.disassemble());
+        let dta = spvmod.assemble();
+
+        std::fs::write("test.spv", bytemuck::cast_slice(dta.as_slice())).unwrap();
     }
 }
