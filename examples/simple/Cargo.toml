@@ -9,5 +9,5 @@ edition = "2021"
 minisdf-ast = {path = "../../crates/minisdf-ast"}
 minisdf-optimizer = {path = "../../crates/minisdf-optimizer"}
 minisdf-backend-spirv = {path = "../../crates/minisdf-backend-spirv"}
-rvsdg-viewer = {path = "../../../vola/crates/rvsdg-viewer"}
+rvsdg-viewer = {git = "https://gitlab.com/tendsinmende/vola.git", branch = "minisdf-tracking"}
 bytemuck = "1.14"
