@@ -10,8 +10,9 @@ members = [
 "crates/minisdf-backend-spirv",
 "crates/msdfc",
 
+"examples/msdfc-runner",
 "examples/simple"
-, "crates/msdfc"]
+]
 
 
 [workspace.dependencies]
