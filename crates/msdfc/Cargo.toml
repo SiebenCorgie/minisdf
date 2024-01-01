@@ -1,5 +1,5 @@
 [package]
-name = "simple"
+name = "msdfc"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,4 +10,5 @@ minisdf-ast = {path = "../../crates/minisdf-ast"}
 minisdf-optimizer = {path = "../../crates/minisdf-optimizer"}
 minisdf-backend-spirv = {path = "../../crates/minisdf-backend-spirv"}
 rvsdg-viewer = {path = "../../../vola/crates/rvsdg-viewer"}
+thiserror.workspace = true
 bytemuck = "1.14"

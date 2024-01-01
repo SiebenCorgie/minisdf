@@ -9,6 +9,9 @@ Proof of concept RVSDG based compiler for a simple SignedDistanceField language.
 
 `minisdf-optimizer`: The RVSDG based optimizer / _middle-end_. Takes an AST and builds a RVSDG representation using basic lowlevel-_ish_ operations. 
 
+`minisdf-backend-spirv`: simple SPIR-V backend based on [rspirv](https://crates.io/crates/rspirv).
+
+`msdfc`: **M**ini**Sdf** **C**ompiler: Simple library that accepts a miniSDF compiler source file, or AST, and generates, if possible, a SPIR-V Binary.
 
 ## Example
 

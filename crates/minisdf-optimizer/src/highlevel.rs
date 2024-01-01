@@ -173,6 +173,7 @@ pub enum Identified {
 }
 
 pub struct HLGraph {
+    pub name: String,
     pub graph: Rvsdg<HLOp, OptEdge>,
     //Annotates all known types
     pub type_table: AttribStore<Ty>,
@@ -221,6 +222,8 @@ pub fn hlgraph_from_ast(ast: Field, src_file: impl AsRef<Path>) -> Result<HLGrap
             );
         })
     }
+
+    let name = ast.name.0.clone();
     //with all attribs hooked up, we can now start transforming the ast into a DAG
     let (field_def, field_export) = graph.on_omega_node(|omega| {
         let export_src = omega
@@ -235,6 +238,7 @@ pub fn hlgraph_from_ast(ast: Field, src_file: impl AsRef<Path>) -> Result<HLGrap
         .unwrap();
 
     Ok(HLGraph {
+        name,
         graph,
         type_table,
         identifier_table,

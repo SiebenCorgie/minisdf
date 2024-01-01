@@ -6,8 +6,6 @@ use rvsdg::{
     NodeRef, SmallColl,
 };
 
-use crate::edge::OptEdge;
-
 use super::LLGraph;
 
 impl LLGraph {

@@ -1,0 +1,17 @@
+[package]
+name = "minisdf-backend-spirv"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+minisdf-common = {path = "../minisdf-common"}
+minisdf-ast = {path = "../minisdf-ast"}
+minisdf-optimizer = {path = "../minisdf-optimizer"}
+tinyvec = {workspace = true, features = ["alloc"]}
+tinyvec_string = {workspace = true, features = ["alloc"]}
+lazy_static.workspace = true
+thiserror.workspace = true
+ahash.workspace = true
+rspirv.workspace = true

@@ -3,8 +3,9 @@
 mod ts_parser;
 use minisdf_common::Span;
 pub use ts_parser::parse_file;
+pub use ts_parser::TSParseError;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Ty {
     Float,
     Vec2,
@@ -13,6 +14,25 @@ pub enum Ty {
     Int,
     Sdf,
     Error,
+}
+
+impl Ty {
+    pub fn is_vec(&self) -> bool {
+        match self {
+            Ty::Vec2 | Ty::Vec3 | Ty::Vec4 => true,
+            _ => false,
+        }
+    }
+
+    ///Returns the sub element count that can be accessed. is 1 for all base types, 2 for Vec2, 3 for Vec3 etc.
+    pub fn element_count(&self) -> usize {
+        match self {
+            Ty::Vec2 => 2,
+            Ty::Vec3 => 3,
+            Ty::Vec4 => 4,
+            _ => 1,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
