@@ -5,6 +5,4 @@ Cargo.lock
 *.spv
 *#
 *~
-*.json
 *.bib.sav
-*.json
