@@ -279,23 +279,31 @@ pub fn build_lambda_torus(
                     &[at_val.clone()],
                 )
                 .unwrap();
-            let (def_at_xy, _) = reg
+            let (def_z, _) = reg
+                .connect_node(
+                    LLOp::new(LLOpTy::CoordSelect(2), Span::empty())
+                        .with_inputs(1)
+                        .with_outputs(1),
+                    &[at_val.clone()],
+                )
+                .unwrap();
+            let (def_at_xz, _) = reg
                 .connect_node(
                     LLOp::new(LLOpTy::TypeConstruct(Ty::Vec2), Span::empty())
                         .with_inputs(2)
                         .with_outputs(1),
                     &[
                         def_x.as_outport_location(OutputType::Output(0)),
-                        def_y.as_outport_location(OutputType::Output(0)),
+                        def_z.as_outport_location(OutputType::Output(0)),
                     ],
                 )
                 .unwrap();
-            let (def_at_xy_length, _) = reg
+            let (def_at_xz_length, _) = reg
                 .connect_node(
                     LLOp::new(LLOpTy::Length, Span::empty())
                         .with_inputs(1)
                         .with_outputs(1),
-                    &[def_at_xy.as_outport_location(OutputType::Output(0))],
+                    &[def_at_xz.as_outport_location(OutputType::Output(0))],
                 )
                 .unwrap();
             let (def_subbed_radius0, _) = reg
@@ -304,7 +312,7 @@ pub fn build_lambda_torus(
                         .with_inputs(2)
                         .with_outputs(1),
                     &[
-                        def_at_xy_length.as_outport_location(OutputType::Output(0)),
+                        def_at_xz_length.as_outport_location(OutputType::Output(0)),
                         radius0,
                     ],
                 )
