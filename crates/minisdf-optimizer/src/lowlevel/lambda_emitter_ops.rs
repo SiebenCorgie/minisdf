@@ -73,15 +73,15 @@ fn build_binary_op_ty(
                             LLOp::new(LLOpTy::Mul, Span::empty())
                                 .with_inputs(2)
                                 .with_outputs(1),
-                            &[minus_one.as_outport_location(OutputType::Output(0)), left],
+                            &[minus_one.as_outport_location(OutputType::Output(0)), right],
                         )
                         .expect("Could not negate the \"right\" value in subtraction call");
                     let (result, _) = reg
                         .connect_node(
-                            LLOp::new(LLOpTy::Min, Span::empty())
+                            LLOp::new(LLOpTy::Max, Span::empty())
                                 .with_inputs(2)
                                 .with_outputs(1),
-                            &[negated.as_outport_location(OutputType::Output(0)), right],
+                            &[negated.as_outport_location(OutputType::Output(0)), left],
                         )
                         .expect("Could not create unions's min call");
                     result
