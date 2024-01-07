@@ -145,6 +145,51 @@ impl LLGraph {
                 }
                 arg_tys[0]
             }
+            LLOpTy::Clamp => {
+                if arg_tys.len() != 3 {
+                    let err = OptError::TooManyInputs(3, arg_tys.len());
+                    report_error(err.clone(), node.span.clone());
+                    return Err(err);
+                }
+                if arg_tys[0] != arg_tys[1] {
+                    let err = OptError::BinOpTypeMissmatch(
+                        arg_tys[0], arg_tys[0], arg_tys[0], arg_tys[1],
+                    );
+                    report_error(err.clone(), node.span.clone());
+                    return Err(err);
+                }
+                if arg_tys[0] != arg_tys[2] {
+                    let err = OptError::BinOpTypeMissmatch(
+                        arg_tys[0], arg_tys[0], arg_tys[0], arg_tys[2],
+                    );
+                    report_error(err.clone(), node.span.clone());
+                    return Err(err);
+                }
+                arg_tys[0]
+            }
+            LLOpTy::Lerp => {
+                if arg_tys.len() != 3 {
+                    let err = OptError::TooManyInputs(3, arg_tys.len());
+                    report_error(err.clone(), node.span.clone());
+                    return Err(err);
+                }
+                if arg_tys[0] != arg_tys[1] {
+                    let err = OptError::BinOpTypeMissmatch(
+                        arg_tys[0], arg_tys[0], arg_tys[0], arg_tys[1],
+                    );
+                    report_error(err.clone(), node.span.clone());
+                    return Err(err);
+                }
+                if arg_tys[2] != Ty::Float {
+                    let err = OptError::TypeExpected {
+                        expect: Ty::Float,
+                        was: Some(arg_tys[2]),
+                    };
+                    report_error(err.clone(), node.span.clone());
+                    return Err(err);
+                }
+                arg_tys[0]
+            }
             LLOpTy::TypeConstruct(ty) => match ty {
                 Ty::Error => {
                     let err = OptError::LLError("Encountered Ty::Error".to_string());

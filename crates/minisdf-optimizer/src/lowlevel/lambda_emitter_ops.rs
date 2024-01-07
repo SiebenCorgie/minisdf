@@ -18,6 +18,7 @@ pub fn build_lambda_ops(
     build_binary_op_ty(region, lambda_lt, BinOpTy::Intersection);
     build_binary_op_ty(region, lambda_lt, BinOpTy::Subtraction);
     build_binary_op_ty(region, lambda_lt, BinOpTy::Union);
+    build_binary_op_ty(region, lambda_lt, BinOpTy::SmoothUnion);
     build_smooth_lambda(region, lambda_lt);
     build_repeat_lambda(region, lambda_lt);
     build_translate_lambda(region, lambda_lt);
@@ -36,6 +37,13 @@ fn build_binary_op_ty(
         let left = lmd.add_argument();
         let right = lmd.add_argument();
         let output = lmd.add_result();
+
+        let third_arg = match op_ty {
+            BinOpTy::SmoothIntersection | BinOpTy::SmoothUnion | BinOpTy::SmoothSubtraction => {
+                Some(lmd.add_argument())
+            }
+            _ => None,
+        };
 
         lmd.on_region(|reg| {
             //use the inputs to do min/max and possibly negate "right", based on our op_ty
@@ -86,6 +94,139 @@ fn build_binary_op_ty(
                         .expect("Could not create unions's min call");
                     result
                 }
+                BinOpTy::SmoothUnion => {
+                    //float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+                    //return mix( d2, d1, h ) - k*h*(1.0-h);
+                    let radius = third_arg.unwrap();
+
+                    let def_zero_five = reg.insert_node(
+                        LLOp::new(LLOpTy::imm_f32(0.5), Span::empty()).with_outputs(1),
+                    );
+                    let def_zero = reg.insert_node(
+                        LLOp::new(LLOpTy::imm_f32(0.0), Span::empty()).with_outputs(1),
+                    );
+                    let def_one = reg.insert_node(
+                        LLOp::new(LLOpTy::imm_f32(1.0), Span::empty()).with_outputs(1),
+                    );
+
+                    let (def_d2_minus_d1, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Sub, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[right, left],
+                        )
+                        .unwrap();
+                    let (def_mul_half_d, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Mul, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[
+                                def_d2_minus_d1.as_outport_location(OutputType::Output(0)),
+                                def_zero_five.as_outport_location(OutputType::Output(0)),
+                            ],
+                        )
+                        .unwrap();
+                    let (def_div_k, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Div, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[
+                                def_mul_half_d.as_outport_location(OutputType::Output(0)),
+                                radius,
+                            ],
+                        )
+                        .unwrap();
+                    let (def_add_zero_five, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Add, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[
+                                def_zero_five.as_outport_location(OutputType::Output(0)),
+                                def_div_k.as_outport_location(OutputType::Output(0)),
+                            ],
+                        )
+                        .unwrap();
+
+                    let (def_h_clamped, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Clamp, Span::empty())
+                                .with_inputs(3)
+                                .with_outputs(1),
+                            &[
+                                def_add_zero_five.as_outport_location(OutputType::Output(0)),
+                                def_zero.as_outport_location(OutputType::Output(0)),
+                                def_one.as_outport_location(OutputType::Output(0)),
+                            ],
+                        )
+                        .unwrap();
+
+                    //build the subtraction part of the mix call
+                    let (def_one_minus_h, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Sub, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[
+                                def_one.as_outport_location(OutputType::Output(0)),
+                                def_h_clamped.as_outport_location(OutputType::Output(0)),
+                            ],
+                        )
+                        .unwrap();
+
+                    let (def_time_h, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Sub, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[
+                                def_one_minus_h.as_outport_location(OutputType::Output(0)),
+                                def_h_clamped.as_outport_location(OutputType::Output(0)),
+                            ],
+                        )
+                        .unwrap();
+                    let (def_time_k, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Sub, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[
+                                def_time_h.as_outport_location(OutputType::Output(0)),
+                                radius,
+                            ],
+                        )
+                        .unwrap();
+
+                    let (def_lerped, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Lerp, Span::empty())
+                                .with_inputs(3)
+                                .with_outputs(1),
+                            &[
+                                right,
+                                left,
+                                def_h_clamped.as_outport_location(OutputType::Output(0)),
+                            ],
+                        )
+                        .unwrap();
+
+                    let (def_result, _) = reg
+                        .connect_node(
+                            LLOp::new(LLOpTy::Sub, Span::empty())
+                                .with_inputs(2)
+                                .with_outputs(1),
+                            &[
+                                def_lerped.as_outport_location(OutputType::Output(0)),
+                                def_time_k.as_outport_location(OutputType::Output(0)),
+                            ],
+                        )
+                        .unwrap();
+                    def_result
+                }
+                _ => todo!(),
             };
 
             reg.ctx_mut()

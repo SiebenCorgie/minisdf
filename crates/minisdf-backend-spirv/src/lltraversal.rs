@@ -22,6 +22,10 @@ pub enum GlslExtInst {
     Max = 40,
     //FMin
     Min = 37,
+    //FMix
+    Lerp = 46,
+    //FClamp
+    Clamp = 43,
 }
 
 impl<'a> LoweringCtx<'a> {
@@ -197,6 +201,27 @@ impl<'a> LoweringCtx<'a> {
                     None,
                     self.glsl_ext_inst,
                     GlslExtInst::Round as u32,
+                    args,
+                )?
+            }
+
+            LLOpTy::Clamp => {
+                assert!(args.len() == 3, "Clamp expects three operand");
+                self.builder.ext_inst(
+                    result_ty,
+                    None,
+                    self.glsl_ext_inst,
+                    GlslExtInst::Clamp as u32,
+                    args,
+                )?
+            }
+            LLOpTy::Lerp => {
+                assert!(args.len() == 3, "Lerp expects three operand");
+                self.builder.ext_inst(
+                    result_ty,
+                    None,
+                    self.glsl_ext_inst,
+                    GlslExtInst::Lerp as u32,
                     args,
                 )?
             }

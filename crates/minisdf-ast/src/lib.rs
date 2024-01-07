@@ -56,6 +56,7 @@ pub enum Parameter {
 pub enum UnOpTy {
     Translate,
     Repeat,
+    RepeatIn,
     Smooth,
     Error,
 }
@@ -71,8 +72,11 @@ pub struct UnaryOp {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum BinOpTy {
     Union,
+    SmoothUnion,
     Subtraction,
+    SmoothSubtraction,
     Intersection,
+    SmoothIntersection,
     Error,
 }
 

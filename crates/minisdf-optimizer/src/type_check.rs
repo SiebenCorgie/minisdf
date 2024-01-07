@@ -90,6 +90,16 @@ impl HLOp {
                         Ok(())
                     }
                 }
+                BinOpTy::SmoothIntersection | BinOpTy::SmoothSubtraction | BinOpTy::SmoothUnion => {
+                    self.check_is_node_type(hlg, 0, Ty::Float)?;
+                    self.check_is_subtree(hlg, 1)?;
+                    self.check_is_subtree(hlg, 2)?;
+                    if self.inputs.len() > 3 {
+                        Err(OptError::TooManyInputs(3, self.inputs.len()))
+                    } else {
+                        Ok(())
+                    }
+                }
             },
             HLOpTy::TyConst(ty) => match ty {
                 Ty::Error => Err(OptError::HLError),
@@ -159,6 +169,17 @@ impl HLOp {
                     self.check_is_subtree(hlg, 3)?;
                     if self.inputs.len() > 4 {
                         Err(OptError::TooManyInputs(4, self.inputs.len()))
+                    } else {
+                        Ok(())
+                    }
+                }
+                UnOpTy::RepeatIn => {
+                    //3 floats as arguments, then a subtree
+                    self.check_is_node_type(hlg, 0, Ty::Vec3)?;
+                    self.check_is_node_type(hlg, 1, Ty::Float)?;
+                    self.check_is_subtree(hlg, 2)?;
+                    if self.inputs.len() > 3 {
+                        Err(OptError::TooManyInputs(3, self.inputs.len()))
                     } else {
                         Ok(())
                     }

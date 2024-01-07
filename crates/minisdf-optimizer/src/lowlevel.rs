@@ -63,6 +63,12 @@ pub enum LLOpTy {
     ///Dot product of two same-arity vectors.
     Dot,
 
+    ///Clamp a vec or scalar in range
+    Clamp,
+
+    //Lerp / mix of two values and a alpha value
+    Lerp,
+
     //NOTE 32bit representation of a float
     ImmF32(u32),
     ImmI32(i32),
@@ -434,7 +440,7 @@ pub fn build_call_trees(
                     .expect("Could not connect binary op post_at call");
                 apply_node.as_outport_location(OutputType::Output(0))
             } else {
-                panic!("Found no post_evaluation rule for binary op");
+                panic!("Found no post_evaluation rule for binary op {bop:?}");
             }
         }
         HLOpTy::UnaryOp(uop) => {

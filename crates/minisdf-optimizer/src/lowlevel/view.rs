@@ -15,6 +15,8 @@ impl View for LLOp {
             LLOpTy::Dot => "dot",
             LLOpTy::Error => "error",
             LLOpTy::Length => "length",
+            LLOpTy::Clamp => "clamp",
+            LLOpTy::Lerp => "lerp",
             LLOpTy::Max => "max",
             LLOpTy::Min => "min",
             LLOpTy::Mul => "mul",

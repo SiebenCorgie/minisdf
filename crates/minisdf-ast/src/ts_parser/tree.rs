@@ -44,6 +44,9 @@ pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
         "inter" => BinOpTy::Intersection,
         "sub" => BinOpTy::Subtraction,
         "union" => BinOpTy::Union,
+        "smooth_union" => BinOpTy::SmoothUnion,
+        "smooth_sub" => BinOpTy::SmoothSubtraction,
+        "smooth_inter" => BinOpTy::SmoothIntersection,
         _ => {
             report_error(TSParseError::UnknownOp(name), Span::from(node));
             BinOpTy::Error
@@ -149,7 +152,7 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
             let mut sub_b_offset = 7;
             let params = if let "call_params" = node.child(2).as_ref().unwrap().kind() {
                 sub_a_offset = 5;
-                sub_b_offset = 6;
+                sub_b_offset = 8;
                 parse_call_params(data, node.child(2).as_ref().unwrap())
             } else {
                 Vec::with_capacity(0)

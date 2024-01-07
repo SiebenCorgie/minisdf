@@ -16,7 +16,7 @@ use rvsdg::{
     attrib::{AttribLocation, AttribStore},
     builder::RegionBuilder,
     edge::{InputType, OutportLocation, OutputType},
-    nodes::{LangNode, Node, NodeType, OmegaNode},
+    nodes::{LangNode, Node, NodeType},
     region::{Input, Output},
     NodeRef, Rvsdg,
 };
@@ -107,10 +107,14 @@ impl View for HLOp {
                 BinOpTy::Intersection => "Intersection",
                 BinOpTy::Subtraction => "Subtraction",
                 BinOpTy::Union => "Union",
+                BinOpTy::SmoothUnion => "SmoothUnion",
+                BinOpTy::SmoothSubtraction => "SmoothSubtraction",
+                BinOpTy::SmoothIntersection => "SmoothIntersection",
             },
             HLOpTy::UnaryOp(uop) => match uop {
                 UnOpTy::Error => "Error Unary Op",
                 UnOpTy::Repeat => "Repeat",
+                UnOpTy::RepeatIn => "RepeatIn",
                 UnOpTy::Smooth => "Smooth",
                 UnOpTy::Translate => "Translate",
             },
@@ -414,9 +418,9 @@ fn param_from_ast(
         Parameter::Ident(ident) => {
             if let Some(port) = identifier_table.get(&ident.0) {
                 match port {
-                    Identified::Arg { def_span, port } => port.clone(),
+                    Identified::Arg { def_span: _, port } => port.clone(),
                     //NOTE: We assume that all nodes have a single output atm.
-                    Identified::Node { def_span, node } => {
+                    Identified::Node { def_span: _, node } => {
                         node.as_outport_location(OutputType::Output(0))
                     }
                 }
