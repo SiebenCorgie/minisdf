@@ -342,6 +342,10 @@
         },
         {
           "type": "STRING",
+          "value": "repeat_in"
+        },
+        {
+          "type": "STRING",
           "value": "smooth"
         }
       ]
@@ -355,11 +359,23 @@
         },
         {
           "type": "STRING",
+          "value": "smooth_union"
+        },
+        {
+          "type": "STRING",
           "value": "sub"
         },
         {
           "type": "STRING",
+          "value": "smooth_sub"
+        },
+        {
+          "type": "STRING",
           "value": "inter"
+        },
+        {
+          "type": "STRING",
+          "value": "smooth_inter"
         }
       ]
     },

@@ -106,14 +106,18 @@ module.exports = grammar({
     unary_op: $ => choice(
       "translate",
       "repeat",
+      "repeat_in",
       "smooth",
     ),
 
     ///All operations on two sub trees
     binary_op: $ => choice(
       "union",
+      "smooth_union",
       "sub",
+      "smooth_sub",
       "inter",
+      "smooth_inter"
     ),
 
     literal: $ => choice(

@@ -179,11 +179,11 @@ field myfield(){
 
 
 ==================
-binary op 1 param
+binary op 2 param
 ==================
 
 field myfield(){
-    union(a, b){
+    smooth_union(a, b){
         sphere()
     }{
         box()
