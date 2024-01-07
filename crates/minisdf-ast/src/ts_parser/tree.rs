@@ -160,7 +160,6 @@ pub fn parse_tree(data: &[u8], node: &Node) -> Tree {
 
             let sub_a = parse_tree(data, node.child(sub_a_offset).as_ref().unwrap());
             let sub_b = parse_tree(data, node.child(sub_b_offset).as_ref().unwrap());
-
             Tree::Binary(crate::BinaryOp {
                 ty: op,
                 parameter: params,

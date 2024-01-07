@@ -97,7 +97,9 @@ fn build_binary_op_ty(
                 BinOpTy::SmoothUnion => {
                     //float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
                     //return mix( d2, d1, h ) - k*h*(1.0-h);
-                    let radius = third_arg.unwrap();
+                    let radius = left;
+                    let left = right;
+                    let right = third_arg.unwrap();
 
                     let def_zero_five = reg.insert_node(
                         LLOp::new(LLOpTy::imm_f32(0.5), Span::empty()).with_outputs(1),
@@ -179,7 +181,7 @@ fn build_binary_op_ty(
 
                     let (def_time_h, _) = reg
                         .connect_node(
-                            LLOp::new(LLOpTy::Sub, Span::empty())
+                            LLOp::new(LLOpTy::Mul, Span::empty())
                                 .with_inputs(2)
                                 .with_outputs(1),
                             &[
@@ -190,7 +192,7 @@ fn build_binary_op_ty(
                         .unwrap();
                     let (def_time_k, _) = reg
                         .connect_node(
-                            LLOp::new(LLOpTy::Sub, Span::empty())
+                            LLOp::new(LLOpTy::Mul, Span::empty())
                                 .with_inputs(2)
                                 .with_outputs(1),
                             &[
