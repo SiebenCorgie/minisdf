@@ -297,7 +297,7 @@ impl<'a> LoweringCtx<'a> {
             .unwrap()
             .edge
             .unwrap();
-        let root_node = self.graph.graph.edge(export_edge).src.clone();
+        let root_node = self.graph.graph.edge(export_edge).src().clone();
         let export_node = self.get_port_id(root_node)?;
 
         Ok(export_node)

@@ -90,7 +90,7 @@ impl LLGraph {
                     for edge in o.edges.iter() {
                         let (dst, ty) = {
                             let edg = self.graph.edge(*edge);
-                            (edg.dst, edg.ty.clone())
+                            (*edg.dst(), edg.ty.clone())
                         };
                         //Disconnect old edge
                         self.graph.disconnect(*edge).unwrap();

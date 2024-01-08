@@ -214,7 +214,7 @@ impl HLGraph {
         //we pick the seeding op our self
         let start_hl_node = self.graph.on_omega_node(|omg| {
             let omg_export_edge = omg.node().get_export(0).unwrap().edge.unwrap();
-            omg.on_region(|reg| reg.ctx().edge(omg_export_edge).src.clone().node)
+            omg.on_region(|reg| reg.ctx().edge(omg_export_edge).src().node)
         });
 
         llgraph.on_omega_node(|omg| {
@@ -258,7 +258,7 @@ fn arg_to_outport(
             .edge
             .as_ref()
             .expect("Expected arg to be connected");
-        hl_graph.graph.edge(*edg).src.clone()
+        hl_graph.graph.edge(*edg).src()
     };
 
     //at this point, check what we have at src
@@ -402,7 +402,7 @@ pub fn build_call_trees(
                     .unwrap(),
             );
             let sdf0 = build_call_trees(
-                sdf0_edge.src.clone().node,
+                sdf0_edge.src().node,
                 hl_graph,
                 lambda_lt,
                 at_port.clone(),
@@ -419,7 +419,7 @@ pub fn build_call_trees(
                     .unwrap(),
             );
             let sdf1 = build_call_trees(
-                sdf1_edge.src.clone().node,
+                sdf1_edge.src().node,
                 hl_graph,
                 lambda_lt,
                 at_port,
@@ -479,7 +479,7 @@ pub fn build_call_trees(
                     .unwrap(),
             );
             let sdf0 = build_call_trees(
-                sdf0_edge.src.clone().node,
+                sdf0_edge.src().node,
                 hl_graph,
                 lambda_lt,
                 at_port,

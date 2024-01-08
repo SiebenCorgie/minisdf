@@ -57,7 +57,7 @@ impl LLGraph {
         for src_edge in all_src_edges {
             let (src_reg_src, src_reg_dst, edge_type) = {
                 let edge = self.graph.edge(src_edge);
-                (edge.src.clone(), edge.dst.clone(), edge.ty)
+                (edge.src(), edge.dst(), edge.ty)
             };
 
             //map the src portion to the dst region
@@ -110,16 +110,12 @@ impl LLGraph {
         // Similar we have a set of results, depending on the apply node.
         let (callable, args, results, parent_region) =
             if let NodeType::Apply(an) = &self.graph.node(apply_node).node_type {
-                let callable = self
-                    .graph
-                    .edge(an.get_callabel_decl().edge.unwrap())
-                    .src
-                    .clone();
+                let callable = self.graph.edge(an.get_callabel_decl().edge.unwrap()).src();
                 let mut argidx = 0;
                 let mut args = Vec::new();
                 while let Some(arg_port) = an.argument_input(argidx) {
                     argidx += 1;
-                    args.push(self.graph.edge(arg_port.edge.unwrap()).src.clone());
+                    args.push(*self.graph.edge(arg_port.edge.unwrap()).src());
                 }
 
                 let mut resultidx = 0;
@@ -128,7 +124,7 @@ impl LLGraph {
                     resultidx += 1;
                     let mut recv = Vec::new();
                     for receiver in res_port.edges.iter() {
-                        recv.push(self.graph.edge(*receiver).dst.clone());
+                        recv.push(*self.graph.edge(*receiver).dst());
                     }
                     results.push(recv);
                 }

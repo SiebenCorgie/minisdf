@@ -26,7 +26,7 @@ impl HLOp {
             //assert that "left" is connected.
             if let Some(connection) = left.edge {
                 //check that the connected node is a simple node as well
-                let src = hlg.graph.edge(connection).src.node;
+                let src = hlg.graph.edge(connection).src().node;
                 if let NodeType::Simple(n) = &hlg.graph.node(src).node_type {
                     if n.is_subtree() {
                         Ok(())
@@ -55,7 +55,7 @@ impl HLOp {
             //assert that "left" is connected.
             if let Some(connection) = left.edge {
                 //check that the connected node is a simple node as well
-                let src = hlg.graph.edge(connection).src.clone();
+                let src = hlg.graph.edge(connection).src().clone();
                 if let Some(srcty) = hlg.get_type(src.clone()) {
                     if srcty == ty {
                         Ok(())
