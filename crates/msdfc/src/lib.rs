@@ -2,7 +2,7 @@ use std::path::Path;
 
 use minisdf_ast::{Field, TSParseError};
 use minisdf_backend_spirv::{rspirv::binary::Assemble, LoweringError, SpirvBackend};
-use minisdf_optimizer::OptError;
+use minisdf_optimizer::{rvsdg::err::LegalizationError, OptError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -15,6 +15,8 @@ pub enum CompileError {
     OptErr(#[from] OptError),
     #[error("Failed to lower LLGraph to SPIR-V: {0}")]
     LoweringErr(#[from] LoweringError),
+    #[error("Failed to legalize RVSDG: {0}")]
+    LegalizeErr(#[from] LegalizationError),
 }
 
 ///Compiles fields in `file`. If successful, returns all SPIR-V modules and their field names.
@@ -44,19 +46,19 @@ pub fn compile_ast(ast: Field, file: impl AsRef<Path>) -> Result<Vec<u32>, Compi
         println!("Type check failed 😭");
         return Err(CompileError::HLTypeCheckFailed);
     }
+
+    hltree.graph.is_legal_structural()?;
     let mut ll_graph = hltree.into_ll_graph();
 
     //rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}.svg", name));
 
     ll_graph.verify()?;
-
     ll_graph.inline();
     //rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_inline.svg", name));
-
     ll_graph.cne();
     //rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_cne.svg", name));
-
     ll_graph.type_resolve()?;
+    ll_graph.graph.is_legal_structural()?;
 
     let spvmod = ll_graph.lower()?;
     let dta = spvmod.assemble();
