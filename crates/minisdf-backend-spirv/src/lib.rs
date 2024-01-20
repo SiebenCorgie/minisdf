@@ -105,7 +105,6 @@ impl<'a> LoweringCtx<'a> {
             let mut imports = SmallColl::new();
             let mut import_idx = 0;
             while let Some(_import_port) = omg.get_import(import_idx) {
-                println!("Port on {}", import_idx);
                 let port_location = OutportLocation {
                     node: self.graph.graph.entry_node(),
                     output: OutputType::Argument(import_idx),

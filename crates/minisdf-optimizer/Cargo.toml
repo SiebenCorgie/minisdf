@@ -6,9 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rvsdg = {git = "https://gitlab.com/tendsinmende/vola.git", branch = "main"}
-#rvsdg = {path = "../../../vola/crates/rvsdg"}
-rvsdg-viewer = {git = "https://gitlab.com/tendsinmende/vola.git", branch = "main"}
+rvsdg.workspace = true
+rvsdg-viewer.workspace = true
 minisdf-common = {path = "../minisdf-common"}
 minisdf-ast = {path = "../minisdf-ast"}
 tinyvec = {workspace = true, features = ["alloc"]}

@@ -16,6 +16,10 @@ members = [
 
 
 [workspace.dependencies]
+rvsdg = {git = "https://gitlab.com/tendsinmende/vola.git", branch = "main"}
+#rvsdg = {path = "../../../vola/crates/rvsdg"}
+rvsdg-viewer = {git = "https://gitlab.com/tendsinmende/vola.git", branch = "main"}
+#rvsdg-viewer = {path = "../../../vola/crates/rvsdg-viewer"}
 tree-sitter = "0.20.10"
 thiserror = "1.0.44"
 ahash = "0.8.3"

@@ -45,8 +45,15 @@ pub fn parse_binopty(data: &[u8], node: &Node) -> BinOpTy {
         "sub" => BinOpTy::Subtraction,
         "union" => BinOpTy::Union,
         "smooth_union" => BinOpTy::SmoothUnion,
+        "smooth_sub" | "smooth_inter" => {
+            report_error(
+                TSParseError::UnknownOp(format!("{} not implemented in backend!", name.as_str())),
+                Span::from(node),
+            );
+            BinOpTy::Error
+        }
         "smooth_sub" => BinOpTy::SmoothSubtraction,
-        "smooth_inter" => BinOpTy::SmoothIntersection,
+        //"smooth_inter" => BinOpTy::SmoothIntersection,
         _ => {
             report_error(TSParseError::UnknownOp(name), Span::from(node));
             BinOpTy::Error

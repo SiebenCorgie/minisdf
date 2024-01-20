@@ -1,6 +1,8 @@
 field myfield(offset_x: float, offset_y: float){
     smooth_union(1.0){
-        sphere(1.0)
+    	translate(vec3(offset_x, offset_y, 1.0)){
+        	sphere(1.0)
+        }
     }{
         sphere(2.0)
     }

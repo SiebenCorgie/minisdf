@@ -3,7 +3,7 @@ use minisdf_backend_spirv::{
     SpirvBackend,
 };
 use minisdf_optimizer::rvsdg::nodes::NodeType;
-use rvsdg_viewer::View;
+use rvsdg_viewer::{layout::LayoutConfig, View};
 
 const SRCFILE: &'static str = "examples/simple/default.minisdf";
 fn main() {
@@ -35,15 +35,37 @@ fn main() {
                     }
                 }
         */
-        rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}.svg", name));
+
+        let ll_layout_config = LayoutConfig {
+            horizontal_node_padding: 10,
+            routing_dead_padding: 3.0,
+            routing_cell_size: 5.0,
+            grid_padding: 30,
+            port_spacing: 20,
+            ..Default::default()
+        };
+
+        rvsdg_viewer::into_svg_with_config(
+            &ll_graph.graph,
+            &format!("ll_{}.svg", name),
+            &ll_layout_config,
+        );
 
         ll_graph.verify().unwrap();
 
         ll_graph.inline();
-        rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_inline.svg", name));
+        rvsdg_viewer::into_svg_with_config(
+            &ll_graph.graph,
+            &format!("ll_{}_post_inline.svg", name),
+            &ll_layout_config,
+        );
 
         ll_graph.cne();
-        rvsdg_viewer::into_svg(&ll_graph.graph, &format!("ll_{}_post_cne.svg", name));
+        rvsdg_viewer::into_svg_with_config(
+            &ll_graph.graph,
+            &format!("ll_{}_post_cne.svg", name),
+            &ll_layout_config,
+        );
 
         ll_graph.type_resolve().unwrap();
 
